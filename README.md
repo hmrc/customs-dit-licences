@@ -1,9 +1,8 @@
-
 # customs-dit-licences
 
  [ ![Download](https://api.bintray.com/packages/hmrc/releases/customs-dit-licences/images/download.svg) ](https://bintray.com/hmrc/releases/customs-dit-licences/_latestVersion)
 
-This is a placeholder README.md for a new repository
+Receive licence usage from backend system and pass it on to DIT-LITE
 
 ### License
 

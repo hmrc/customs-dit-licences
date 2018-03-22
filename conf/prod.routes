@@ -1,0 +1,4 @@
+->         /                     health.Routes
+
+POST       /                     @uk.gov.hmrc.customs.dit.licence.controllers.DummyController.post
+GET        /admin/metrics        @com.kenshoo.play.metrics.MetricsController.metrics
