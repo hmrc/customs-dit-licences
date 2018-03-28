@@ -19,25 +19,18 @@ package uk.gov.hmrc.customs.dit.licence.logging
 import com.google.inject.Inject
 import javax.inject.Singleton
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.customs.dit.licence.logging.LoggingHelper._
+import uk.gov.hmrc.customs.dit.licence.logging.model.SeqOfHeader
+import uk.gov.hmrc.http.HeaderCarrier
 
 @Singleton
 class LicencesLogger @Inject()(logger: CdsLogger) {
 
-  def debug(msg: => String, url: => String, payload: => String)(implicit hc: HeaderCarrier): Unit = logger.debug(formatDebug(msg, Some(url), Some(payload)))
-
-  def debug(msg: => String, payload: => String)(implicit hc: HeaderCarrier): Unit = logger.debug(formatDebug(msg, None, Some(payload)))
-
-  def debug(msg: => String)(implicit hc: HeaderCarrier): Unit = logger.debug(formatDebug(msg))
-
-  def info(msg: => String)(implicit hc: HeaderCarrier): Unit = logger.info(formatInfo(msg))
-
-  def warn(msg: => String)(implicit hc: HeaderCarrier): Unit = logger.warn(formatWarn(msg))
-
-  def error(msg: => String, e: => Throwable)(implicit hc: HeaderCarrier): Unit = logger.error(formatError(msg), e)
-
-  def error(msg: => String)(implicit hc: HeaderCarrier): Unit = logger.error(formatError(msg))
-
+  def debug(msg: => String): Unit = logger.debug(formatDebug(msg))
+  def debug(msg: => String, headers: => SeqOfHeader): Unit = logger.debug(formatDebug(msg, headers))
+  def debug(msg: => String, headers: => SeqOfHeader, payload: => String): Unit =  logger.debug(formatDebug(msg, headers, Some(payload)))
+  def info(msg: => String, headers: => SeqOfHeader): Unit = logger.info(formatInfo(msg, headers))
+  def error(msg: => String, headers: => SeqOfHeader, e: => Throwable): Unit = logger.error(formatError(msg, headers), e)
+  def error(msg: => String, headers: => SeqOfHeader): Unit = logger.error(formatError(msg, headers))
   def errorWithoutHeaderCarrier(msg: => String): Unit = logger.error(msg)
 }

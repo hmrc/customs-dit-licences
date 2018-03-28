@@ -30,16 +30,7 @@ object LoggingHelper {
   private val headerOverwriteValue = "value-not-logged"
   private val headersToOverwrite = Set(AUTHORIZATION)
 
-  def formatError(msg: String)(implicit hc: HeaderCarrier): String = {
-    formatInfo(msg)
-  }
-
-  def formatWarn(msg: String)(implicit hc: HeaderCarrier): String = {
-    formatInfo(msg)
-  }
-
-  def formatInfo(msg: String)(implicit hc: HeaderCarrier): String = {
-    val headers = hc.headers
+  def formatError(msg: String, headers: SeqOfHeader): String = {
     formatInfo(msg, headers)
   }
 
@@ -47,15 +38,9 @@ object LoggingHelper {
     s"${formatSignificantHeaders(headers)} $msg"
   }
 
-  def formatDebug(msg: String, headers: SeqOfHeader): String = {
-    s"${formatSignificantHeaders(headers)} $msg \nheaders=${overwriteHeaderValues(headers, headersToOverwrite)}"
-  }
-
-  def formatDebug(msg: String, maybeUrl: Option[String] = None, maybePayload: Option[String] = None)(implicit hc: HeaderCarrier): String = {
-    val headers = hc.headers
-    val urlPart = maybeUrl.fold("")(url => s"url=$url")
+  def formatDebug(msg: String, headers: SeqOfHeader = Seq.empty, maybePayload: Option[String] = None): String = {
     val payloadPart = maybePayload.fold("")(payload => s"\npayload=\n$payload")
-    s"${formatSignificantHeaders(headers)} $msg $urlPart\nheaders=${overwriteHeaderValues(headers, headersToOverwrite)}$payloadPart"
+    s"${formatSignificantHeaders(headers)} $msg \nheaders=${overwriteHeaderValues(headers, headersToOverwrite)}$payloadPart"
   }
 
   private def formatSingleHeader(headers: SeqOfHeader, headerName: String, headerHumanReadableName: String): String = {

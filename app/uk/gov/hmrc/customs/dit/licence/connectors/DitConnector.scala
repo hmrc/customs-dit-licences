@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package unit.controllers
+package uk.gov.hmrc.customs.dit.licence.connectors
 
-import org.scalatest.{BeforeAndAfterEach, Matchers}
-import org.scalatest.mockito.MockitoSugar
-import play.api.test.FakeRequest
-import uk.gov.hmrc.customs.dit.licence.controllers.DummyController
-import uk.gov.hmrc.play.test.UnitSpec
-import play.api.test.Helpers._
+import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.http.ws.WSHttp
 
-class DummyControllerSpec extends UnitSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-  private val mockLogger = mock[LicencesLogger]
-  val controller = new DummyController(mockLogger)
+@Singleton
+class DitConnector @Inject() (wsHttp: WSHttp, logger: LicencesLogger) {
 
-  "DummyController" should {
-    "return 200 OK for valid request" in {
-      val result = controller.post().apply(FakeRequest())
-      status(result) shouldBe ACCEPTED
-    }
+  //TODO this will call DIT service and return it's response all the way to the caller of this service
+  def post(): Future[HttpResponse] = {
+
+    implicit val hc: HeaderCarrier = HeaderCarrier()
+    wsHttp.POSTString("http://some-url", "body")
   }
 }

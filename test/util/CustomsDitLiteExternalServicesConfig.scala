@@ -14,23 +14,9 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.dit.licence.controllers
+package util
 
-import javax.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent}
-import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
-import uk.gov.hmrc.play.microservice.controller.BaseController
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-
-@Singleton
-class DummyController @Inject() (logger: LicencesLogger) extends BaseController {
-
-  def post(): Action[AnyContent] = Action.async {
-    implicit request =>
-      logger.debug("Request received")
-      Future {Accepted}
-  }
-
+object CustomsDitLiteExternalServicesConfig {
+  val DitLiteEntryUsageServiceContext = "/ditLiteService/entry-usage"
+  val DitLiteLateUsageServiceContext = "/ditLiteService/late-usage"
 }

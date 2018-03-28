@@ -99,8 +99,12 @@ lazy val playPublishingSettings: Seq[sbt.Setting[_]] = sbtrelease.ReleasePlugin.
   publishAllArtefacts
 
 lazy val scoverageSettings: Seq[Setting[_]] = Seq(
-  coverageExcludedPackages := "<empty>;Reverse.*;models/.data/..*;models.*;config.*;.*(BuildInfo|Routes).*",
-  coverageMinimum := 70,
+  coverageExcludedPackages := List(
+    "<empty>",
+    "Reverse.*",
+    "uk\\.gov\\.hmrc\\.customs\\.dit\\.licence\\.services\\.config..*",
+    ".*(BuildInfo|Routes).*").mkString(";"),
+  coverageMinimum := 80,
   coverageFailOnMinimum := false,
   coverageHighlighting := true,
   parallelExecution in Test := false
