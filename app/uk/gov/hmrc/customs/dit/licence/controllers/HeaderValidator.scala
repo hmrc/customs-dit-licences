@@ -23,8 +23,8 @@ import play.mvc.Http.Status.UNAUTHORIZED
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse._
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
-import uk.gov.hmrc.customs.dit.licence.model.HeaderMap
-import uk.gov.hmrc.customs.dit.licence.services.config.ConfigService
+import uk.gov.hmrc.customs.dit.licence.logging.model.HeaderMap
+import uk.gov.hmrc.customs.dit.licence.services.ConfigService
 
 @Singleton
 class HeaderValidator @Inject() (configService: ConfigService, logger: LicencesLogger) {

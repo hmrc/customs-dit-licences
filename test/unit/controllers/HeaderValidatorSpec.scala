@@ -22,13 +22,13 @@ import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.http.HeaderNames
 import play.api.http.HeaderNames._
 import play.api.test.Helpers.CONTENT_TYPE
-import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{ErrorContentTypeHeaderInvalid, ErrorAcceptHeaderInvalid}
+import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{ErrorAcceptHeaderInvalid, ErrorContentTypeHeaderInvalid}
 import uk.gov.hmrc.customs.dit.licence.controllers.HeaderValidator
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
-import uk.gov.hmrc.customs.dit.licence.services.config.ConfigService
+import uk.gov.hmrc.customs.dit.licence.services.ConfigService
 import uk.gov.hmrc.play.test.UnitSpec
 import util.RequestHeaders._
-import util.TestData.{ErrorXCorrelationIdMissingOrInvalid, ErrorUnauthorizedBasicToken}
+import util.TestData.{ErrorUnauthorizedBasicToken, ErrorXCorrelationIdMissingOrInvalid}
 
 class HeaderValidatorSpec extends UnitSpec with TableDrivenPropertyChecks with MockitoSugar {
 

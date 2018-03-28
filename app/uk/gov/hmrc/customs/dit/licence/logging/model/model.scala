@@ -19,5 +19,6 @@ package uk.gov.hmrc.customs.dit.licence.logging
 package object model {
 
   type SeqOfHeader = Seq[(String, String)]
+  type HeaderMap = Map[String, String]
 
 }

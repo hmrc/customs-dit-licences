@@ -35,6 +35,9 @@ object TestData {
   val correlationIdValue = "e61f8eee-812c-4b8f-b193-06aedc60dca2"
   val correlationIdUuid: UUID = UUID.fromString(correlationIdValue)
 
+  type EmulatedServiceFailure = UnsupportedOperationException
+  val emulatedServiceFailure = new EmulatedServiceFailure("Emulated service failure.")
+
   val ValidXML: Elem = <some>xml</some>
 
   lazy val ValidRequest: FakeRequest[AnyContentAsXml] = FakeRequest()

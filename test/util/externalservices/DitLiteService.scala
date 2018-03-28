@@ -29,7 +29,7 @@ trait DitLiteService extends WireMockRunner {
     stubFor(post(urlMatchingRequestPath).
       willReturn(
         aResponse()
-          .withStatus(ACCEPTED)))
+          .withStatus(OK)))
   }
 
   def setupDitLiteService(status: Int): Unit =

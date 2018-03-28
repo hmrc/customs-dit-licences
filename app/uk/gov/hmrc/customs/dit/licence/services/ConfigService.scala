@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.dit.licence.services.config
+package uk.gov.hmrc.customs.dit.licence.services
 
 import javax.inject.{Inject, Singleton}
 import scalaz._

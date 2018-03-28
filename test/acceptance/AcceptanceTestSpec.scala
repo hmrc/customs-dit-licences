@@ -28,11 +28,15 @@ import scala.xml.{Node, Utility, XML}
 trait AcceptanceTestSpec extends FeatureSpec with GivenWhenThen with GuiceOneAppPerSuite
    with BeforeAndAfterAll with BeforeAndAfterEach {
 
+  private val protocol = "http"
+
   override implicit lazy val app: Application = new GuiceApplicationBuilder().configure(Map(
+    "microservice.services.dit-lite-entry-usage.protocol" -> protocol,
     "microservice.services.dit-lite-entry-usage.host" -> ExternalServicesConfig.Host,
     "microservice.services.dit-lite-entry-usage.port" -> ExternalServicesConfig.Port,
     "microservice.services.dit-lite-entry-usage.context" -> CustomsDitLiteExternalServicesConfig.DitLiteEntryUsageServiceContext,
     "microservice.services.dit-lite-entry-usage.bearer-token" -> ExternalServicesConfig.AuthToken,
+    "microservice.services.dit-lite-late-usage.protocol" -> protocol,
     "microservice.services.dit-lite-late-usage.host" -> ExternalServicesConfig.Host,
     "microservice.services.dit-lite-late-usage.port" -> ExternalServicesConfig.Port,
     "microservice.services.dit-lite-late-usage.context" -> CustomsDitLiteExternalServicesConfig.DitLiteLateUsageServiceContext,
