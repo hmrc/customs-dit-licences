@@ -18,6 +18,6 @@ package uk.gov.hmrc.customs.dit.licence.domain
 
 trait CustomsDitLicencesConfig {
 
-  def basicAuthToken: String
+  def basicAuthTokenInternal: String
 
 }

@@ -49,13 +49,13 @@ class HeaderValidatorSpec extends UnitSpec with TableDrivenPropertyChecks with M
       ("Invalid content type header", ValidHeaders + CONTENT_TYPE_HEADER_INVALID, Left(ErrorContentTypeHeaderInvalid)),
       ("Invalid content type XML without UTF-8 header", ValidHeaders + (CONTENT_TYPE -> "application/xml"), Left(ErrorContentTypeHeaderInvalid)),
       ("Invalid X-Correlation-ID header", ValidHeaders + X_CORRELATION_ID_HEADER_INVALID, Left(ErrorXCorrelationIdMissingOrInvalid)),
-      ("Invalid auth header", ValidHeaders + AUTH_HEADER_INVALID, Left(ErrorUnauthorizedBasicToken))
+      ("Invalid auth header", ValidHeaders + AUTH_HEADER_INTERNAL_INVALID, Left(ErrorUnauthorizedBasicToken))
     )
 
   "HeaderValidatorAction" should {
     forAll(headersTable) { (description, headers, response) =>
       s"$description" in {
-        when(mockConfigService.basicAuthToken).thenReturn(AUTH_HEADER_TOKEN)
+        when(mockConfigService.basicAuthTokenInternal).thenReturn(AUTH_HEADER_TOKEN_INTERNAL)
 
         validator.validateHeaders(headers) shouldBe response
       }

@@ -36,7 +36,7 @@ import uk.gov.hmrc.customs.dit.licence.domain.CustomsDitLicencesConfig
 @Singleton
 class ConfigService @Inject()(configValidationNel: ConfigValidationNelAdaptor, logger: CdsLogger) extends CustomsDitLicencesConfig {
 
-  private case class CustomsDitLicencesConfigImpl(basicAuthToken: String) extends CustomsDitLicencesConfig
+  private case class CustomsDitLicencesConfigImpl(basicAuthTokenInternal: String) extends CustomsDitLicencesConfig
 
   private val config: CustomsDitLicencesConfig = {
 
@@ -62,5 +62,5 @@ class ConfigService @Inject()(configValidationNel: ConfigValidationNelAdaptor, l
 
   }
 
-  override val basicAuthToken: String = config.basicAuthToken
+  override val basicAuthTokenInternal: String = config.basicAuthTokenInternal
 }

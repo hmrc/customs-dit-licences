@@ -62,10 +62,10 @@ object RequestHeaders {
   val ACCEPT_HEADER: (String, String) = ACCEPT -> "application/xml"
   val ACCEPT_HEADER_INVALID: (String, String) = ACCEPT -> "invalid"
 
-  val AUTH_HEADER_TOKEN = "dummy-token"
-  val AUTH_HEADER_VALUE: String = s"Basic $AUTH_HEADER_TOKEN"
-  val AUTH_HEADER: (String, String) = HeaderNames.AUTHORIZATION -> AUTH_HEADER_VALUE
-  val AUTH_HEADER_INVALID: (String, String) = HeaderNames.AUTHORIZATION -> "some-invalid-auth"
+  val AUTH_HEADER_TOKEN_INTERNAL = "dummy-token-internal"
+  val AUTH_HEADER_VALUE_INTERNAL: String = s"Basic $AUTH_HEADER_TOKEN_INTERNAL"
+  val AUTH_HEADER_INTERNAL: (String, String) = HeaderNames.AUTHORIZATION -> AUTH_HEADER_VALUE_INTERNAL
+  val AUTH_HEADER_INTERNAL_INVALID: (String, String) = HeaderNames.AUTHORIZATION -> "some-invalid-auth-internal"
 
   val X_CORRELATION_ID_NAME = "X-Correlation-ID"
   val X_CORRELATION_ID_HEADER: (String, String) = X_CORRELATION_ID_NAME -> correlationIdUuid.toString
@@ -76,7 +76,7 @@ object RequestHeaders {
   val ValidHeaders = Map(
     CONTENT_TYPE_HEADER,
     ACCEPT_HEADER,
-    AUTH_HEADER,
+    AUTH_HEADER_INTERNAL,
     X_CORRELATION_ID_HEADER)
 
   val InvalidHeaders: Map[String, String] = ValidHeaders - X_CORRELATION_ID_NAME

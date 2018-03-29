@@ -98,7 +98,7 @@ class DitLiteConnectorSpec extends UnitSpec with MockitoSugar with BeforeAndAfte
         val headersCaptor: ArgumentCaptor[HeaderCarrier] = ArgumentCaptor.forClass(classOf[HeaderCarrier])
         verify(mockWsPost).POSTString(anyString, anyString, any[SeqOfHeader])(
           any[HttpReads[HttpResponse]](), headersCaptor.capture(), any[ExecutionContext])
-        headersCaptor.getValue.extraHeaders should contain(HeaderNames.CONTENT_TYPE -> MimeTypes.XML)
+        headersCaptor.getValue.extraHeaders should contain(HeaderNames.CONTENT_TYPE -> (MimeTypes.XML + "; charset=UTF-8"))
       }
 
       "set the accept header" in {

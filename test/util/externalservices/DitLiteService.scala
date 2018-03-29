@@ -41,18 +41,17 @@ trait DitLiteService extends WireMockRunner {
   def verifyDitLiteServiceWasCalledWith(requestBody: String,
                                         expectedAuthToken: String = ExternalServicesConfig.AuthToken,
                                         maybeUnexpectedAuthToken: Option[String] = None) {
-    //TODO headers tbc
     verify(1, postRequestedFor(urlMatchingRequestPath)
-      .withHeader(CONTENT_TYPE, equalTo(XML))
+      .withHeader(CONTENT_TYPE, equalTo(XML + "; charset=UTF-8"))
       .withHeader(ACCEPT, equalTo(XML))
-      .withHeader(AUTHORIZATION, equalTo(s"Bearer $expectedAuthToken"))
+      .withHeader(AUTHORIZATION, equalTo(s"Basic $expectedAuthToken"))
       .withHeader(DATE, notMatching(""))
       .withHeader("X-Correlation-ID", notMatching(""))
       .withRequestBody(equalToXml(requestBody))
       )
 
     maybeUnexpectedAuthToken foreach { unexpectedAuthToken =>
-      verify(0, postRequestedFor(urlMatchingRequestPath).withHeader(AUTHORIZATION, equalTo(s"Bearer $unexpectedAuthToken")))
+      verify(0, postRequestedFor(urlMatchingRequestPath).withHeader(AUTHORIZATION, equalTo(s"Basic $unexpectedAuthToken")))
     }
   }
 }

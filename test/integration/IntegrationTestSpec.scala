@@ -22,13 +22,13 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.play.test.UnitSpec
-import util.RequestHeaders.AUTH_HEADER_TOKEN
+import util.RequestHeaders.AUTH_HEADER_TOKEN_INTERNAL
 
 trait IntegrationTestSpec extends UnitSpec
   with BeforeAndAfterEach with BeforeAndAfterAll with Eventually with GuiceOneAppPerSuite {
 
   override implicit lazy val app: Application =
-    new GuiceApplicationBuilder().configure(Map("auth.token.internal" -> AUTH_HEADER_TOKEN)).build()
+    new GuiceApplicationBuilder().configure(Map("auth.token.internal" -> AUTH_HEADER_TOKEN_INTERNAL)).build()
 
 }
 

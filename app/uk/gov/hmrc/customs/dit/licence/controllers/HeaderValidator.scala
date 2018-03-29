@@ -30,7 +30,7 @@ import uk.gov.hmrc.customs.dit.licence.services.ConfigService
 class HeaderValidator @Inject() (configService: ConfigService, logger: LicencesLogger) {
 
   private val basicAuthTokenScheme = "Basic "
-  private lazy val basicAuthToken: String = configService.basicAuthToken
+  private lazy val basicAuthToken: String = configService.basicAuthTokenInternal
   private lazy val ErrorUnauthorized = ErrorResponse(UNAUTHORIZED, UnauthorizedCode, "Basic token is missing or not authorized")
   private lazy val ErrorXCorrelationIdMissingOrInvalid = errorBadRequest("X-Correlation-ID is missing or invalid")
   private lazy val xCorrelationIdRegex = "^[A-Za-z0-9-]{36}$".r

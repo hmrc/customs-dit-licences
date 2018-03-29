@@ -45,7 +45,6 @@ class EntryUsageControllerSpec extends IntegrationTestSpec with MockitoSugar
     stopMockServer()
   }
 
-
   "EntryUsageController" should {
     "return Ok for a valid request" in {
       val request: FakeRequest[AnyContentAsXml] = FakeRequest("POST", EntryUsageUrl)
@@ -83,6 +82,5 @@ class EntryUsageControllerSpec extends IntegrationTestSpec with MockitoSugar
       status(future) shouldBe BAD_REQUEST
     }
   }
-
 
 }

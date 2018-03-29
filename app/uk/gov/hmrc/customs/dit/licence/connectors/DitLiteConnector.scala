@@ -40,9 +40,9 @@ class DitLiteConnector @Inject()(wsHttp: WSHttp,
   def post(body: NodeSeq, correlationId: UUID, configKey: String): Future[HttpResponse] = {
 
     val config = Option(serviceConfigProvider.getConfig(configKey)).getOrElse(throw new IllegalArgumentException("config not found"))
-    val bearerToken = "Bearer " + config.bearerToken.getOrElse(throw new IllegalStateException("no bearer token was found in config"))
+    val basicToken = "Basic " + config.bearerToken.getOrElse(throw new IllegalStateException("no basic token was found in config"))
 
-    implicit val hc: HeaderCarrier = HeaderCarrier(extraHeaders = getHeaders(correlationId), authorization = Some(Authorization(bearerToken)))
+    implicit val hc: HeaderCarrier = HeaderCarrier(extraHeaders = getHeaders(correlationId), authorization = Some(Authorization(basicToken)))
 
     logger.debug(s"calling DIT-LITE at ${config.url}", hc.headers, body.toString())
     wsHttp.POSTString(config.url, body.toString())
@@ -51,7 +51,7 @@ class DitLiteConnector @Inject()(wsHttp: WSHttp,
   private def getHeaders(correlationId: UUID) = {
     Seq(
       (ACCEPT, MimeTypes.XML),
-      (CONTENT_TYPE, MimeTypes.XML),
+      (CONTENT_TYPE, MimeTypes.XML + "; charset=UTF-8"),
       (DATE, dateTimeService.nowUtc().toString("EEE, dd MMM yyyy HH:mm:ss z")),
       ("X-Correlation-ID", correlationId.toString))
   }
