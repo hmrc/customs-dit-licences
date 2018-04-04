@@ -16,39 +16,49 @@
 
 package unit.controllers
 
-import org.mockito.ArgumentMatchers.{eq => meq}
 import org.mockito.Mockito._
 import org.scalatest.Matchers
 import org.scalatest.mockito.MockitoSugar
-import uk.gov.hmrc.customs.dit.licence.controllers.{HeaderValidator, ValidateAndExtractHeadersAction, ValidatedRequest}
+import play.api.mvc.Result
+import play.api.mvc.Results.Ok
+import play.api.test.FakeRequest
+import uk.gov.hmrc.customs.dit.licence.controllers.{HeaderValidator, ValidateAndExtractHeadersAction}
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
+import uk.gov.hmrc.customs.dit.licence.model.ValidatedRequest
 import uk.gov.hmrc.play.test.UnitSpec
 import util.RequestHeaders._
 import util.TestData._
 
+import scala.concurrent.Future
+
 
 class ValidateAndExtractHeadersActionSpec extends UnitSpec with Matchers with MockitoSugar {
 
+  val blockReturningOk = (_: ValidatedRequest[_]) => Future.successful(Ok)
+
   private val mockHeaderValidator = mock[HeaderValidator]
   private val mockLogger = mock[LicencesLogger]
-
-  private val action = new ValidateAndExtractHeadersAction(mockHeaderValidator, mockLogger)
+  private val actionRefiner = new ValidateAndExtractHeadersAction(mockHeaderValidator, mockLogger)
 
   "ValidateAndExtractHeadersAction" should {
     "when valid headers are submitted then return a ValidatedRequest" in {
-      when(mockHeaderValidator.validateHeaders(ValidHeaders)).thenReturn(Right(()))
+      val request = FakeRequest().withXmlBody(ValidXML).withHeaders(ValidHeaders.toSeq:_*)
 
-      val result = await(action.refine(ValidRequest))
+      when(mockHeaderValidator.validateHeaders(request)).thenReturn(Right(TestRequestData))
 
-      result shouldBe Right(ValidatedRequest(ValidHeaders, ValidRequest))
+      val result: Result = await(actionRefiner.invokeBlock(request, blockReturningOk))
+
+      result shouldBe Ok
     }
 
     "when invalid headers are submitted then return an ErrorResponse" in {
-      when(mockHeaderValidator.validateHeaders(InvalidHeaders)).thenReturn(Left(ErrorXCorrelationIdMissingOrInvalid))
+      val request = FakeRequest().withXmlBody(ValidXML).withHeaders(InvalidHeaders.toSeq:_*)
 
-      val result = await(action.refine(InvalidRequestWithoutXCorrelationId))
+      when(mockHeaderValidator.validateHeaders(InvalidRequestWithoutXCorrelationId)).thenReturn(Left(ErrorXCorrelationIdMissingOrInvalid))
 
-      result shouldBe Left(ErrorXCorrelationIdMissingOrInvalid.XmlResult)
+      val result: Result = await(actionRefiner.invokeBlock(request, blockReturningOk))
+
+      result shouldBe ErrorXCorrelationIdMissingOrInvalid.XmlResult
     }
 
   }

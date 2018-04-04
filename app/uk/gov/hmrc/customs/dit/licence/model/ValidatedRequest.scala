@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.dit.licence.logging
+package uk.gov.hmrc.customs.dit.licence.model
 
-package object model {
+import play.api.mvc.{Request, WrappedRequest}
 
-  type SeqOfHeader = Seq[(String, String)]
-  type HeaderMap = Map[String, String]
-
-}
+case class ValidatedRequest[A](requestData: RequestData, request: Request[A]) extends WrappedRequest[A](request)

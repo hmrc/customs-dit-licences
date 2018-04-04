@@ -16,43 +16,28 @@
 
 package unit.logging
 
+import org.mockito.Mockito.when
+import org.scalatest.mockito.MockitoSugar
+import play.api.mvc.{AnyContent, Request}
 import uk.gov.hmrc.customs.dit.licence.logging.LoggingHelper
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}
 import uk.gov.hmrc.play.test.UnitSpec
+import util.TestData.correlationId
 
-import util.RequestHeaders._
-import util.TestData.correlationIdValue
+class LoggingHelperSpec extends UnitSpec with MockitoSugar {
 
-class LoggingHelperSpec extends UnitSpec {
+  private val msg = "msg"
+  val requestData = mock[RequestData]
+  val requestMock = mock[Request[AnyContent]]
+  val validatedRequest = ValidatedRequest[AnyContent](requestData, requestMock)
+  when(requestData.correlationId).thenReturn("e61f8eee-812c-4b8f-b193-06aedc60dca2")
 
-  private val errorMsg = "ERROR"
-  private val infoMsg = "INFO"
-  private val debugMsg = "DEBUG"
-  private val expectedFormattedSignificantHeaders = s"[correlationId=$correlationIdValue]"
-  private val expectedHeaders = s"headers=List((X-Correlation-ID,$correlationIdValue))"
-  private val miniXmlPayload: String =
-        """<xml>
-          | <content>This is well-formed XML</content>
-          |</xml>""".stripMargin
+  private val expectedFormattedHeaders = s"[correlationId=$correlationId]"
 
   "LoggingHelper" should {
 
-    "format ERROR" in {
-      LoggingHelper.formatError(errorMsg, LoggingHeaders) shouldBe s"$expectedFormattedSignificantHeaders $errorMsg"
-    }
-
-    "format INFO" in {
-      LoggingHelper.formatInfo(infoMsg, LoggingHeaders) shouldBe s"$expectedFormattedSignificantHeaders $infoMsg"
-    }
-
-    "format DEBUG" in {
-      LoggingHelper.formatDebug(debugMsg, LoggingHeaders) shouldBe
-        s"$expectedFormattedSignificantHeaders $debugMsg \n$expectedHeaders"
-    }
-
-    "format DEBUG with payload" in {
-      LoggingHelper.formatDebug(debugMsg, LoggingHeaders, Some(miniXmlPayload.toString)) shouldBe
-        s"$expectedFormattedSignificantHeaders $debugMsg \n$expectedHeaders\npayload=\n<xml>\n <content>This is well-formed XML</content>\n</xml>"
+    "format log" in {
+      LoggingHelper.formatLog(msg, validatedRequest) shouldBe s"$expectedFormattedHeaders $msg"
     }
 
   }

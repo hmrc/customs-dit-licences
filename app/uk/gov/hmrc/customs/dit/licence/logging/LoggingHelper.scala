@@ -16,53 +16,21 @@
 
 package uk.gov.hmrc.customs.dit.licence.logging
 
-import play.api.http.HeaderNames.AUTHORIZATION
-import uk.gov.hmrc.customs.dit.licence.logging.model.SeqOfHeader
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.customs.dit.licence.controllers.CustomHeaderNames.X_CORRELATION_ID_HEADER_NAME
+import play.api.mvc.AnyContent
+import uk.gov.hmrc.customs.dit.licence.model.ValidatedRequest
 
 object LoggingHelper {
 
-  private val SIGNIFICANT_HEADERS = Map(
-    X_CORRELATION_ID_HEADER_NAME -> "correlationId"
-  )
-
-  private val headerOverwriteValue = "value-not-logged"
-  private val headersToOverwrite = Set(AUTHORIZATION)
-
-  def formatError(msg: String, headers: SeqOfHeader): String = {
-    formatInfo(msg, headers)
+  def formatLog(msg: String, validatedRequest: ValidatedRequest[AnyContent]): String = {
+    formatMessage(msg, validatedRequest)
   }
 
-  def formatInfo(msg: String, headers: SeqOfHeader): String = {
-    s"${formatSignificantHeaders(headers)} $msg"
+  private def formatMessage(msg: String, validatedRequest: ValidatedRequest[AnyContent]): String = {
+    s"${format(validatedRequest)} $msg".trim
   }
 
-  def formatDebug(msg: String, headers: SeqOfHeader = Seq.empty, maybePayload: Option[String] = None): String = {
-    val payloadPart = maybePayload.fold("")(payload => s"\npayload=\n$payload")
-    s"${formatSignificantHeaders(headers)} $msg \nheaders=${overwriteHeaderValues(headers, headersToOverwrite)}$payloadPart"
+  private def format(validatedRequest: ValidatedRequest[AnyContent]): String = {
+    s"[correlationId=${validatedRequest.requestData.correlationId}]"
   }
 
-  private def formatSingleHeader(headers: SeqOfHeader, headerName: String, headerHumanReadableName: String): String = {
-    val maybeHeaderValue = findHeaderValue(headerName, headers)
-
-    maybeHeaderValue.fold("")(value => s"[$headerHumanReadableName=$value]")
-  }
-
-  private def formatSignificantHeaders(headers: SeqOfHeader): String = {
-    SIGNIFICANT_HEADERS.map { case (k, v) => formatSingleHeader(headers, k, v) }.mkString
-  }
-
-  private def findHeaderValue(headerName: String, headers: SeqOfHeader): Option[String] = {
-    headers.collectFirst {
-      case (`headerName`, headerValue) => headerValue
-    }
-  }
-
-  private def overwriteHeaderValues(headers: SeqOfHeader, overwrittenHeaderNames: Set[String]): SeqOfHeader = {
-    headers map {
-      case (rewriteHeader, _) if overwrittenHeaderNames.contains(rewriteHeader) => rewriteHeader -> headerOverwriteValue
-      case header => header
-    }
-  }
 }

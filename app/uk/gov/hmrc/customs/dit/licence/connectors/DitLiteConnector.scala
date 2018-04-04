@@ -16,43 +16,40 @@
 
 package uk.gov.hmrc.customs.dit.licence.connectors
 
-import java.util.UUID
-
 import javax.inject.{Inject, Singleton}
-import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE, DATE}
+import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE}
 import play.api.http.MimeTypes
+import play.api.mvc.AnyContent
 import uk.gov.hmrc.customs.api.common.config.ServiceConfigProvider
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
-import uk.gov.hmrc.customs.dit.licence.services.{DateTimeService, WSHttp}
+import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}
+import uk.gov.hmrc.customs.dit.licence.services.WSHttp
 import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.xml.NodeSeq
 
 @Singleton
 class DitLiteConnector @Inject()(wsHttp: WSHttp,
                                  serviceConfigProvider: ServiceConfigProvider,
-                                 dateTimeService: DateTimeService,
                                  logger: LicencesLogger) {
 
-  def post(body: NodeSeq, correlationId: UUID, configKey: String): Future[HttpResponse] = {
+  def post(configKey: String)(implicit validatedRequest: ValidatedRequest[AnyContent]): Future[HttpResponse] = {
 
     val config = Option(serviceConfigProvider.getConfig(configKey)).getOrElse(throw new IllegalArgumentException("config not found"))
     val basicToken = "Basic " + config.bearerToken.getOrElse(throw new IllegalStateException("no basic token was found in config"))
 
-    implicit val hc: HeaderCarrier = HeaderCarrier(extraHeaders = getHeaders(correlationId), authorization = Some(Authorization(basicToken)))
+    implicit val hc: HeaderCarrier = HeaderCarrier(extraHeaders = getHeaders(validatedRequest.requestData), authorization = Some(Authorization(basicToken)))
 
-    logger.debug(s"calling DIT-LITE at ${config.url}", hc.headers, body.toString())
-    wsHttp.POSTString(config.url, body.toString())
+    logger.debug(s"calling DIT-LITE at ${config.url} with\nheaders=[${hc.headers}] and\npayload=[${validatedRequest.request.body.asXml.get.toString}]")
+    wsHttp.POSTString(config.url, validatedRequest.request.body.asXml.get.toString)
   }
 
-  private def getHeaders(correlationId: UUID) = {
+  private def getHeaders(requestData: RequestData) = {
     Seq(
       (ACCEPT, MimeTypes.XML),
       (CONTENT_TYPE, MimeTypes.XML + "; charset=UTF-8"),
-      (DATE, dateTimeService.nowUtc().toString("EEE, dd MMM yyyy HH:mm:ss z")),
-      ("X-Correlation-ID", correlationId.toString))
+      ("X-Correlation-ID", requestData.correlationId))
   }
 }

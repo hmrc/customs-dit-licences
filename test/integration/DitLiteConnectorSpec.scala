@@ -16,15 +16,17 @@
 
 package integration
 
+import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.mvc.AnyContent
 import play.api.test.Helpers._
 import uk.gov.hmrc.customs.dit.licence.connectors.DitLiteConnector
+import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.http.logging.Authorization
 import util.TestData._
 import util.externalservices.DitLiteService
 import util.{CustomsDitLiteExternalServicesConfig, ExternalServicesConfig}
@@ -38,8 +40,9 @@ class DitLiteConnectorSpec extends IntegrationTestSpec with GuiceOneAppPerSuite 
   private val externalAuthToken = "external-token"
   private val internalAuthToken = s"Basic $externalAuthToken"
   private val configKey = "dit-lite-entry-usage"
-
-  private implicit val hc: HeaderCarrier = HeaderCarrier(authorization = Some(Authorization(internalAuthToken)))
+  private implicit val headerCarrier: HeaderCarrier = mock[HeaderCarrier]
+  private val requestData: RequestData = RequestData("e61f8eee-812c-4b8f-b193-06aedc60dca2")
+  private implicit val validatedRequest: ValidatedRequest[AnyContent] = ValidatedRequest[AnyContent](requestData, ValidRequest)
 
   override protected def beforeAll() {
     startMockServer()
@@ -95,6 +98,6 @@ class DitLiteConnectorSpec extends IntegrationTestSpec with GuiceOneAppPerSuite 
   }
 
   private def sendValidXml() = {
-    connector.post(ValidXML, correlationIdUuid, configKey)
+    connector.post(configKey)
   }
 }

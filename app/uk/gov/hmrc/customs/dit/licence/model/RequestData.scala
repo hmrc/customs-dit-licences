@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.dit.licence.services
+package uk.gov.hmrc.customs.dit.licence.model
 
-import java.time.Clock
-
-import org.joda.time.{DateTime, DateTimeZone}
-
-class DateTimeService {
-  def nowUtc(): DateTime = new DateTime(Clock.systemUTC().instant().toEpochMilli, DateTimeZone.UTC)
-}
+case class RequestData(correlationId: String)

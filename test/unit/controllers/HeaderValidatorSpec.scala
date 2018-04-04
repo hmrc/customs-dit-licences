@@ -21,26 +21,28 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.http.HeaderNames
 import play.api.http.HeaderNames._
+import play.api.mvc.{AnyContent, Headers, Request}
 import play.api.test.Helpers.CONTENT_TYPE
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{ErrorAcceptHeaderInvalid, ErrorContentTypeHeaderInvalid}
+import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.dit.licence.controllers.HeaderValidator
-import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
 import uk.gov.hmrc.customs.dit.licence.services.ConfigService
 import uk.gov.hmrc.play.test.UnitSpec
 import util.RequestHeaders._
-import util.TestData.{ErrorUnauthorizedBasicToken, ErrorXCorrelationIdMissingOrInvalid}
+import util.TestData.{ErrorUnauthorizedBasicToken, ErrorXCorrelationIdMissingOrInvalid, TestRequestData}
 
 class HeaderValidatorSpec extends UnitSpec with TableDrivenPropertyChecks with MockitoSugar {
 
-  private val mockLogger = mock[LicencesLogger]
+  private val mockLogger = mock[CdsLogger]
+  implicit val request = mock[Request[AnyContent]]
   private val mockConfigService = mock[ConfigService]
   private val validator = new HeaderValidator (mockConfigService, mockLogger)
 
   val headersTable =
     Table(
       ("description", "Headers", "Expected response"),
-      ("Valid Headers", ValidHeaders, Right(())),
-      ("Valid content type XML with no space header", ValidHeaders + (CONTENT_TYPE -> "application/xml;charset=utf-8"), Right(())),
+      ("Valid Headers", ValidHeaders, Right(TestRequestData)),
+      ("Valid content type XML with no space header", ValidHeaders + (CONTENT_TYPE -> "application/xml;charset=utf-8"), Right(TestRequestData)),
       ("Missing accept header", ValidHeaders - ACCEPT, Left(ErrorAcceptHeaderInvalid)),
       ("Missing content type header", ValidHeaders - CONTENT_TYPE, Left(ErrorContentTypeHeaderInvalid)),
       ("Missing X-Correlation-ID header", ValidHeaders - X_CORRELATION_ID_NAME, Left(ErrorXCorrelationIdMissingOrInvalid)),
@@ -56,8 +58,9 @@ class HeaderValidatorSpec extends UnitSpec with TableDrivenPropertyChecks with M
     forAll(headersTable) { (description, headers, response) =>
       s"$description" in {
         when(mockConfigService.basicAuthTokenInternal).thenReturn(AUTH_HEADER_TOKEN_INTERNAL)
+        when(request.headers).thenReturn(new Headers(headers.toSeq))
 
-        validator.validateHeaders(headers) shouldBe response
+        validator.validateHeaders(request) shouldBe response
       }
     }
   }

@@ -45,7 +45,6 @@ trait DitLiteService extends WireMockRunner {
       .withHeader(CONTENT_TYPE, equalTo(XML + "; charset=UTF-8"))
       .withHeader(ACCEPT, equalTo(XML))
       .withHeader(AUTHORIZATION, equalTo(s"Basic $expectedAuthToken"))
-      .withHeader(DATE, notMatching(""))
       .withHeader("X-Correlation-ID", notMatching(""))
       .withRequestBody(equalToXml(requestBody))
       )

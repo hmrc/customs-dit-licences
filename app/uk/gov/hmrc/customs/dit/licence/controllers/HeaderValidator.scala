@@ -19,42 +19,65 @@ package uk.gov.hmrc.customs.dit.licence.controllers
 import javax.inject.{Inject, Singleton}
 import play.api.http.HeaderNames._
 import play.api.http.MimeTypes
+import play.api.mvc.{Headers, Request}
 import play.mvc.Http.Status.UNAUTHORIZED
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse._
-import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
-import uk.gov.hmrc.customs.dit.licence.logging.model.HeaderMap
+import uk.gov.hmrc.customs.api.common.logging.CdsLogger
+import uk.gov.hmrc.customs.dit.licence.controllers.CustomHeaderNames.X_CORRELATION_ID_HEADER_NAME
+import uk.gov.hmrc.customs.dit.licence.model.RequestData
 import uk.gov.hmrc.customs.dit.licence.services.ConfigService
 
 @Singleton
-class HeaderValidator @Inject() (configService: ConfigService, logger: LicencesLogger) {
+class HeaderValidator @Inject() (configService: ConfigService, logger: CdsLogger) {
 
   private val basicAuthTokenScheme = "Basic "
   private lazy val basicAuthToken: String = configService.basicAuthTokenInternal
   private lazy val ErrorUnauthorized = ErrorResponse(UNAUTHORIZED, UnauthorizedCode, "Basic token is missing or not authorized")
   private lazy val ErrorXCorrelationIdMissingOrInvalid = errorBadRequest("X-Correlation-ID is missing or invalid")
   private lazy val xCorrelationIdRegex = "^[A-Za-z0-9-]{36}$".r
-
-  def validateHeaders[A](headers: HeaderMap): Either[ErrorResponse, Unit] = {
-
-    if (!hasContentType(headers)) {
-      Left(ErrorContentTypeHeaderInvalid)
-    } else if (!hasAccept(headers)) {
-      Left(ErrorAcceptHeaderInvalid)
-    } else if (!hasAuth(headers, basicAuthToken)) {
-      Left(ErrorUnauthorized)
-    } else if (!hasXCorrelationId(headers)) {
-      Left(ErrorXCorrelationIdMissingOrInvalid)
-    } else {
-      Right(())
-    }
-  }
-
   private lazy val validAcceptHeaders = Seq("application/xml")
   private lazy val validContentTypeHeaders = Seq(MimeTypes.XML + ";charset=utf-8", MimeTypes.XML + "; charset=utf-8")
 
-  private def hasAccept(h: HeaderMap) = h.get(ACCEPT).fold(false)(validAcceptHeaders.contains(_))
-  private def hasContentType(h: HeaderMap) = h.get(CONTENT_TYPE).fold(false)(h => validContentTypeHeaders.contains(h.toLowerCase()))
-  private def hasAuth(h: HeaderMap, basicAuthToken: String) = h.get(AUTHORIZATION).fold(false)(_ == basicAuthTokenScheme + basicAuthToken)
-  private def hasXCorrelationId(h: HeaderMap) = h.get(CustomHeaderNames.X_CORRELATION_ID_HEADER_NAME).fold(false)(xCorrelationIdRegex.findFirstIn(_).nonEmpty)
+  def validateHeaders[A](implicit request: Request[A]): Either[ErrorResponse, RequestData] = {
+    implicit val headers = request.headers
+
+    def hasAccept = validateHeader(ACCEPT, validAcceptHeaders.contains(_), ErrorAcceptHeaderInvalid)
+    def hasContentType = validateHeader(CONTENT_TYPE, s => validContentTypeHeaders.contains(s.toLowerCase()), ErrorContentTypeHeaderInvalid)
+    def hasAuth(basicAuthToken: String) = validateHeader(AUTHORIZATION, _ == basicAuthTokenScheme + basicAuthToken, ErrorUnauthorized)
+    def hasXCorrelationId = validateHeader(X_CORRELATION_ID_HEADER_NAME, xCorrelationIdRegex.findFirstIn(_).nonEmpty, ErrorXCorrelationIdMissingOrInvalid)
+
+    val theResult: Either[ErrorResponse, RequestData] = for {
+      accept <- hasAccept.right
+      contentType <- hasContentType.right
+      auth <- hasAuth(basicAuthToken).right
+      xCorrelationId <- hasXCorrelationId.right
+    } yield {
+      logger.debug(
+        s"\n$ACCEPT header passed validation: $accept\n"
+          + s"$CONTENT_TYPE header passed validation: $contentType\n"
+          + s"$AUTHORIZATION header passed validation: $auth\n"
+          + s"$X_CORRELATION_ID_HEADER_NAME header passed validation: $xCorrelationId\n")
+      RequestData(xCorrelationId)
+    }
+    theResult
+  }
+
+  private def validateHeader(headerName: String, rule: String => Boolean, errorResponse: ErrorResponse)(implicit h: Headers): Either[ErrorResponse, String] = {
+    val left = Left(errorResponse)
+    def leftWithLog = {
+      logger.error(s"${errorResponse.message} ")
+      left
+    }
+    def leftWithLogContainingValue(s: String) = {
+      logger.error(s"${errorResponse.message} '$s'")
+      left
+    }
+
+    h.get(headerName).fold[Either[ErrorResponse, String]]{
+      leftWithLog
+    }{
+      h => if (rule(h)) Right(h) else leftWithLogContainingValue(h)
+    }
+  }
 }

@@ -16,8 +16,6 @@
 
 package util
 
-import java.util.UUID
-
 import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE}
 import play.api.http.{HeaderNames, MimeTypes}
 import play.api.mvc.AnyContentAsXml
@@ -25,33 +23,32 @@ import play.api.test.FakeRequest
 import play.mvc.Http.Status.UNAUTHORIZED
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{UnauthorizedCode, errorBadRequest}
+import uk.gov.hmrc.customs.dit.licence.model.RequestData
 import util.RequestHeaders._
 import util.TestData._
 
-import scala.xml.Elem
+import scala.xml.NodeSeq
 
 object TestData {
 
-  val correlationIdValue = "e61f8eee-812c-4b8f-b193-06aedc60dca2"
-  val correlationIdUuid: UUID = UUID.fromString(correlationIdValue)
+  val correlationId = "e61f8eee-812c-4b8f-b193-06aedc60dca2"
 
   type EmulatedServiceFailure = UnsupportedOperationException
   val emulatedServiceFailure = new EmulatedServiceFailure("Emulated service failure.")
 
-  val ValidXML: Elem = <some>xml</some>
+  val ValidXML: NodeSeq = <some>xml</some>
 
   lazy val ValidRequest: FakeRequest[AnyContentAsXml] = FakeRequest()
     .withHeaders(ValidHeaders.toSeq: _*)
     .withXmlBody(ValidXML)
 
   lazy val InvalidRequestWithoutXCorrelationId: FakeRequest[AnyContentAsXml] = ValidRequest
-    .copyFakeRequest(headers =
-      ValidRequest.headers.remove(X_CORRELATION_ID_NAME))
+    .copyFakeRequest(headers = ValidRequest.headers.remove(X_CORRELATION_ID_NAME))
 
   lazy val ErrorXCorrelationIdMissingOrInvalid = errorBadRequest("X-Correlation-ID is missing or invalid")
-  lazy val ErrorUnauthorizedBadXml = ErrorResponse(UNAUTHORIZED, UnauthorizedCode, "Payload is not well-formed XML")
   lazy val ErrorUnauthorizedBasicToken = ErrorResponse(UNAUTHORIZED, UnauthorizedCode, "Basic token is missing or not authorized")
 
+  val TestRequestData = RequestData(correlationId)
 }
 
 object RequestHeaders {
@@ -68,10 +65,8 @@ object RequestHeaders {
   val AUTH_HEADER_INTERNAL_INVALID: (String, String) = HeaderNames.AUTHORIZATION -> "some-invalid-auth-internal"
 
   val X_CORRELATION_ID_NAME = "X-Correlation-ID"
-  val X_CORRELATION_ID_HEADER: (String, String) = X_CORRELATION_ID_NAME -> correlationIdUuid.toString
+  val X_CORRELATION_ID_HEADER: (String, String) = X_CORRELATION_ID_NAME -> correlationId
   val X_CORRELATION_ID_HEADER_INVALID: (String, String) = X_CORRELATION_ID_NAME -> "invalid-uuid"
-
-  val LoggingHeaders = Seq(X_CORRELATION_ID_HEADER)
 
   val ValidHeaders = Map(
     CONTENT_TYPE_HEADER,
