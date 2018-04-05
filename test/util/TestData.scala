@@ -17,7 +17,8 @@
 package util
 
 import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE}
-import play.api.http.{HeaderNames, MimeTypes}
+import play.api.http.HeaderNames
+import play.api.http.MimeTypes.XML
 import play.api.mvc.{AnyContentAsText, AnyContentAsXml}
 import play.api.test.FakeRequest
 import play.mvc.Http.Status.UNAUTHORIZED
@@ -55,7 +56,7 @@ object TestData {
 
 object RequestHeaders {
 
-  val CONTENT_TYPE_HEADER: (String, String) = CONTENT_TYPE -> (MimeTypes.XML + "; charset=UTF-8")
+  val CONTENT_TYPE_HEADER: (String, String) = CONTENT_TYPE -> s"$XML; charset=UTF-8"
   val CONTENT_TYPE_HEADER_INVALID: (String, String) = CONTENT_TYPE -> "somethinginvalid"
 
   val ACCEPT_HEADER: (String, String) = ACCEPT -> "application/xml"

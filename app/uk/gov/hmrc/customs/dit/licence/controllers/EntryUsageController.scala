@@ -19,14 +19,14 @@ package uk.gov.hmrc.customs.dit.licence.controllers
 import akka.util.ByteString
 import javax.inject.{Inject, Singleton}
 import play.api.http.HttpEntity.Strict
-import play.api.http.MimeTypes.XML
+import play.api.http.MimeTypes
 import play.api.mvc._
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
 import uk.gov.hmrc.customs.dit.licence.connectors.DitLiteConnector
+import uk.gov.hmrc.customs.dit.licence.controllers.CustomHeaderNames.X_CORRELATION_ID_HEADER_NAME
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
 import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import uk.gov.hmrc.customs.dit.licence.controllers.CustomHeaderNames.X_CORRELATION_ID_HEADER_NAME
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -50,7 +50,7 @@ class EntryUsageController @Inject() (validateAndExtractHeadersAction: ValidateA
             }
             headers += correlationIdHeader(validatedRequest.requestData)
             logger.debug(s"sending the DIT-LITE response to backend with status ${response.status} and\nresponse headers=$headers \nresponse payload=${response.body}")
-            Result(ResponseHeader(response.status, headers), Strict(ByteString(response.body), Some(s"$XML; charset=UTF-8")))
+            Result(ResponseHeader(response.status, headers), Strict(ByteString(response.body), Some(s"${MimeTypes.XML}; charset=UTF-8")))
           }
         case _ =>
           logger.error("Malformed XML")
