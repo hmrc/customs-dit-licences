@@ -62,6 +62,4 @@ class ValidateAndExtractHeadersActionSpec extends UnitSpec with Matchers with Mo
     }
 
   }
-
-
 }

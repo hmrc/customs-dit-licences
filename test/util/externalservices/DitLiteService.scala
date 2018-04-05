@@ -23,20 +23,12 @@ import util.{CustomsDitLiteExternalServicesConfig, ExternalServicesConfig, WireM
 trait DitLiteService extends WireMockRunner {
   private val urlMatchingRequestPath = urlMatching(CustomsDitLiteExternalServicesConfig.DitLiteEntryUsageServiceContext)
 
-  def startDitLiteService(): Unit = {
-    setupDitLiteService(OK)
-
+  def startDitLiteService(status: Int): Unit =
     stubFor(post(urlMatchingRequestPath).
       willReturn(
         aResponse()
-          .withStatus(OK)))
-  }
-
-  def setupDitLiteService(status: Int): Unit =
-    stubFor(post(urlMatchingRequestPath).
-      willReturn(
-        aResponse()
-          .withStatus(status)))
+          .withStatus(status)
+          .withBody("<some>xml</some>")))
 
   def verifyDitLiteServiceWasCalledWith(requestBody: String,
                                         expectedAuthToken: String = ExternalServicesConfig.AuthToken,

@@ -29,6 +29,4 @@ trait IntegrationTestSpec extends UnitSpec
 
   override implicit lazy val app: Application =
     new GuiceApplicationBuilder().configure(Map("auth.token.internal" -> AUTH_HEADER_TOKEN_INTERNAL)).build()
-
 }
-

@@ -18,7 +18,7 @@ package uk.gov.hmrc.customs.dit.licence.controllers
 
 import javax.inject.{Inject, Singleton}
 import play.api.http.HeaderNames._
-import play.api.http.MimeTypes
+import play.api.http.MimeTypes.XML
 import play.api.mvc.{Headers, Request}
 import play.mvc.Http.Status.UNAUTHORIZED
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
@@ -36,8 +36,8 @@ class HeaderValidator @Inject() (configService: ConfigService, logger: CdsLogger
   private lazy val ErrorUnauthorized = ErrorResponse(UNAUTHORIZED, UnauthorizedCode, "Basic token is missing or not authorized")
   private lazy val ErrorXCorrelationIdMissingOrInvalid = errorBadRequest("X-Correlation-ID is missing or invalid")
   private lazy val xCorrelationIdRegex = "^[A-Za-z0-9-]{36}$".r
-  private lazy val validAcceptHeaders = Seq("application/xml")
-  private lazy val validContentTypeHeaders = Seq(MimeTypes.XML + ";charset=utf-8", MimeTypes.XML + "; charset=utf-8")
+  private lazy val validAcceptHeaders = Seq(XML)
+  private lazy val validContentTypeHeaders = Seq(s"$XML;charset=utf-8", s"$XML; charset=utf-8")
 
   def validateHeaders[A](implicit request: Request[A]): Either[ErrorResponse, RequestData] = {
     implicit val headers = request.headers

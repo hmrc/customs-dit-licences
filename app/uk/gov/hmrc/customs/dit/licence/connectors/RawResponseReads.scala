@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.dit.licence.model
+package uk.gov.hmrc.customs.dit.licence.connectors
 
-import play.api.mvc.{Request, WrappedRequest}
+import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
-case class ValidatedRequest[A](requestData: RequestData, request: Request[A]) extends WrappedRequest[A](request)
+trait RawResponseReads {
+
+  implicit val httpReads: HttpReads[HttpResponse] = new HttpReads[HttpResponse] {
+    override def read(method: String, url: String, response: HttpResponse) = response
+  }
+}

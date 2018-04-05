@@ -16,7 +16,6 @@
 
 package integration
 
-import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -69,24 +68,24 @@ class DitLiteConnectorSpec extends IntegrationTestSpec with GuiceOneAppPerSuite 
   "DitLiteConnector" should {
 
     "make a correct request" in {
-      setupDitLiteService(OK)
+      startDitLiteService(OK)
       await(sendValidXml())
       verifyDitLiteServiceWasCalledWith(requestBody = ValidXML.toString(), maybeUnexpectedAuthToken = Some(internalAuthToken))
     }
 
     "return a failed future when external service returns 404" in {
-      setupDitLiteService(NOT_FOUND)
-      intercept[Exception](await(sendValidXml())).getClass shouldBe classOf[NotFoundException]
+      startDitLiteService(NOT_FOUND)
+      await(sendValidXml()).status shouldBe NOT_FOUND
     }
 
     "return a failed future when external service returns 400" in {
-      setupDitLiteService(BAD_REQUEST)
-      intercept[Exception](await(sendValidXml())).getClass shouldBe classOf[BadRequestException]
+      startDitLiteService(BAD_REQUEST)
+      await(sendValidXml()).status shouldBe BAD_REQUEST
     }
 
     "return a failed future when external service returns 500" in {
-      setupDitLiteService(INTERNAL_SERVER_ERROR)
-      intercept[Upstream5xxResponse](await(sendValidXml()))
+      startDitLiteService(INTERNAL_SERVER_ERROR)
+      await(sendValidXml()).status shouldBe INTERNAL_SERVER_ERROR
     }
 
     "return a failed future when fail to connect the external service" in {

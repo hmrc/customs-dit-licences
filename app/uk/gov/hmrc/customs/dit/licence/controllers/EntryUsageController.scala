@@ -19,14 +19,17 @@ package uk.gov.hmrc.customs.dit.licence.controllers
 import akka.util.ByteString
 import javax.inject.{Inject, Singleton}
 import play.api.http.HttpEntity.Strict
-import play.api.http.MimeTypes
+import play.api.http.MimeTypes.XML
 import play.api.mvc._
+import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
 import uk.gov.hmrc.customs.dit.licence.connectors.DitLiteConnector
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
-import uk.gov.hmrc.customs.dit.licence.model.ValidatedRequest
+import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}
 import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.customs.dit.licence.controllers.CustomHeaderNames.X_CORRELATION_ID_HEADER_NAME
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 @Singleton
 class EntryUsageController @Inject() (validateAndExtractHeadersAction: ValidateAndExtractHeadersAction,
@@ -35,19 +38,32 @@ class EntryUsageController @Inject() (validateAndExtractHeadersAction: ValidateA
 
   private val configKey = "dit-lite-entry-usage"
 
-  def post(): Action[AnyContent] = (Action andThen validateAndExtractHeadersAction).async {
+  def post(): Action[AnyContent] = (Action andThen validateAndExtractHeadersAction).async(bodyParser = xmlOrEmptyBody) {
       implicit validatedRequest: ValidatedRequest[AnyContent] =>
 
       logger.info("entered EntryUsageController after validating headers")
-
-      val response = ditLiteConnector.post(configKey)
-      response.map { response =>
-        val headers = response.allHeaders.map {
-          h => (h._1, h._2.head)
-        }
-        logger.debug(s"sending the DIT-LITE response to backend with status ${response.status} and\nresponse headers=$headers \nresponse payload=${response.body}")
-        Result(ResponseHeader(response.status, headers), Strict(ByteString(response.body), Some(MimeTypes.XML + "; charset=utf-8")))
+      validatedRequest.request.body.asXml match {
+        case Some(_) =>
+          ditLiteConnector.post(configKey).map { response =>
+            var headers = response.allHeaders.map {
+              h => (h._1, h._2.head)
+            }
+            headers += correlationIdHeader(validatedRequest.requestData)
+            logger.debug(s"sending the DIT-LITE response to backend with status ${response.status} and\nresponse headers=$headers \nresponse payload=${response.body}")
+            Result(ResponseHeader(response.status, headers), Strict(ByteString(response.body), Some(s"$XML; charset=UTF-8")))
+          }
+        case _ =>
+          logger.error("Malformed XML")
+          Future.successful(ErrorResponse.errorBadRequest("Malformed XML").XmlResult.withHeaders(correlationIdHeader(validatedRequest.requestData)))
       }
   }
 
+  private def xmlOrEmptyBody: BodyParser[AnyContent] = BodyParser(rq => parse.xml(rq).map {
+    case Right(xml) => Right(AnyContentAsXml(xml))
+    case _ => Right(AnyContentAsEmpty)
+  })
+
+  private def correlationIdHeader(request: RequestData) = {
+    X_CORRELATION_ID_HEADER_NAME -> request.correlationId
+  }
 }

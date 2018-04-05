@@ -18,7 +18,7 @@ package uk.gov.hmrc.customs.dit.licence.connectors
 
 import javax.inject.{Inject, Singleton}
 import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE}
-import play.api.http.MimeTypes
+import play.api.http.MimeTypes.XML
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.customs.api.common.config.ServiceConfigProvider
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
@@ -33,7 +33,7 @@ import scala.concurrent.Future
 @Singleton
 class DitLiteConnector @Inject()(wsHttp: WSHttp,
                                  serviceConfigProvider: ServiceConfigProvider,
-                                 logger: LicencesLogger) {
+                                 logger: LicencesLogger) extends RawResponseReads {
 
   def post(configKey: String)(implicit validatedRequest: ValidatedRequest[AnyContent]): Future[HttpResponse] = {
 
@@ -48,8 +48,8 @@ class DitLiteConnector @Inject()(wsHttp: WSHttp,
 
   private def getHeaders(requestData: RequestData) = {
     Seq(
-      (ACCEPT, MimeTypes.XML),
-      (CONTENT_TYPE, MimeTypes.XML + "; charset=UTF-8"),
+      (ACCEPT, XML),
+      (CONTENT_TYPE, s"$XML; charset=UTF-8"),
       ("X-Correlation-ID", requestData.correlationId))
   }
 }

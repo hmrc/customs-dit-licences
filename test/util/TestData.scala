@@ -18,7 +18,7 @@ package util
 
 import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE}
 import play.api.http.{HeaderNames, MimeTypes}
-import play.api.mvc.AnyContentAsXml
+import play.api.mvc.{AnyContentAsText, AnyContentAsXml}
 import play.api.test.FakeRequest
 import play.mvc.Http.Status.UNAUTHORIZED
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
@@ -44,6 +44,8 @@ object TestData {
 
   lazy val InvalidRequestWithoutXCorrelationId: FakeRequest[AnyContentAsXml] = ValidRequest
     .copyFakeRequest(headers = ValidRequest.headers.remove(X_CORRELATION_ID_NAME))
+
+  lazy val MalformedXmlRequest: FakeRequest[AnyContentAsText] = ValidRequest.withTextBody("<xml><non_well_formed><xml>")
 
   lazy val ErrorXCorrelationIdMissingOrInvalid = errorBadRequest("X-Correlation-ID is missing or invalid")
   lazy val ErrorUnauthorizedBasicToken = ErrorResponse(UNAUTHORIZED, UnauthorizedCode, "Basic token is missing or not authorized")
@@ -77,4 +79,3 @@ object RequestHeaders {
   val InvalidHeaders: Map[String, String] = ValidHeaders - X_CORRELATION_ID_NAME
 
 }
-

@@ -46,11 +46,10 @@ class CustomsDitLicencesSpec extends AcceptanceTestSpec
     stopMockServer()
   }
 
-//TODO complete when connector written
   feature("Submissions for entry usage") {
     scenario("Backend system successfully submits usage") {
       Given("The backend wants to submit valid licence usage")
-      startDitLiteService()
+      startDitLiteService(OK)
       val request: FakeRequest[AnyContentAsXml] = ValidRequest.copyFakeRequest(method = "POST", uri = entryUsageEndpoint)
 
       When("a POST request with data is sent to the API")
@@ -59,8 +58,8 @@ class CustomsDitLicencesSpec extends AcceptanceTestSpec
       Then("a response with a 200 (OK) status is received")
       status(result) shouldBe OK
 
+      And("the response body is not empty")
+      contentAsString(result) should not be 'empty
     }
-
   }
-
 }
