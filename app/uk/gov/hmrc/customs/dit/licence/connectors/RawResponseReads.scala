@@ -14,23 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.dit.licence.logging
+package uk.gov.hmrc.customs.dit.licence.connectors
 
-import play.api.mvc.AnyContent
-import uk.gov.hmrc.customs.dit.licence.model.ValidatedRequest
+import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
-object LoggingHelper {
+trait RawResponseReads {
 
-  def formatLog(msg: String, validatedRequest: ValidatedRequest[AnyContent]): String = {
-    formatMessage(msg, validatedRequest)
+  implicit val httpReads: HttpReads[HttpResponse] = new HttpReads[HttpResponse] {
+    override def read(method: String, url: String, response: HttpResponse) = response
   }
-
-  private def formatMessage(msg: String, validatedRequest: ValidatedRequest[AnyContent]): String = {
-    s"${format(validatedRequest)} $msg".trim
-  }
-
-  private def format(validatedRequest: ValidatedRequest[AnyContent]): String = {
-    s"[correlationId=${validatedRequest.requestData.correlationId}]"
-  }
-
 }

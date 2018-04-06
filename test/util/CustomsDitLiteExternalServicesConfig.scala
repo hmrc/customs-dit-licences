@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.dit.licence.logging
+package util
 
-package object model {
-
-  type SeqOfHeader = Seq[(String, String)]
-
+object CustomsDitLiteExternalServicesConfig {
+  val DitLiteEntryUsageServiceContext = "/ditLiteService/entry-usage"
+  val DitLiteLateUsageServiceContext = "/ditLiteService/late-usage"
 }

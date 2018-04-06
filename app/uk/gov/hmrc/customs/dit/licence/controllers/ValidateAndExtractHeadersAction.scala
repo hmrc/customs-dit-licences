@@ -16,21 +16,24 @@
 
 package uk.gov.hmrc.customs.dit.licence.controllers
 
-import javax.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent}
+import javax.inject.Inject
+import play.api.mvc.{ActionRefiner, Request, Result}
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.customs.dit.licence.model.ValidatedRequest
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-@Singleton
-class DummyController @Inject() (logger: LicencesLogger) extends BaseController {
+class ValidateAndExtractHeadersAction @Inject()(validator: HeaderValidator,
+                                                logger: LicencesLogger) extends ActionRefiner[Request, ValidatedRequest] {
 
-  def post(): Action[AnyContent] = Action.async {
-    implicit request =>
-      logger.debug("Request received")
-      Future {Accepted}
+  override def refine[A](inputRequest: Request[A]): Future[Either[Result, ValidatedRequest[A]]] = Future.successful {
+    implicit val r: Request[A] = inputRequest
+
+    validator.validateHeaders match {
+      case Right(requestData) =>
+        Right(ValidatedRequest(requestData, inputRequest))
+      case Left(errorResponse) =>
+        Left(errorResponse.XmlResult)
+    }
   }
-
 }

@@ -18,26 +18,15 @@ package uk.gov.hmrc.customs.dit.licence.logging
 
 import com.google.inject.Inject
 import javax.inject.Singleton
+import play.api.mvc.AnyContent
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.customs.dit.licence.logging.LoggingHelper._
+import uk.gov.hmrc.customs.dit.licence.model.ValidatedRequest
 
 @Singleton
 class LicencesLogger @Inject()(logger: CdsLogger) {
 
-  def debug(msg: => String, url: => String, payload: => String)(implicit hc: HeaderCarrier): Unit = logger.debug(formatDebug(msg, Some(url), Some(payload)))
-
-  def debug(msg: => String, payload: => String)(implicit hc: HeaderCarrier): Unit = logger.debug(formatDebug(msg, None, Some(payload)))
-
-  def debug(msg: => String)(implicit hc: HeaderCarrier): Unit = logger.debug(formatDebug(msg))
-
-  def info(msg: => String)(implicit hc: HeaderCarrier): Unit = logger.info(formatInfo(msg))
-
-  def warn(msg: => String)(implicit hc: HeaderCarrier): Unit = logger.warn(formatWarn(msg))
-
-  def error(msg: => String, e: => Throwable)(implicit hc: HeaderCarrier): Unit = logger.error(formatError(msg), e)
-
-  def error(msg: => String)(implicit hc: HeaderCarrier): Unit = logger.error(formatError(msg))
-
-  def errorWithoutHeaderCarrier(msg: => String): Unit = logger.error(msg)
+  def debug(msg: => String)(implicit validatedRequest: ValidatedRequest[AnyContent]): Unit = logger.debug(formatLog(msg, validatedRequest))
+  def info(msg: => String)(implicit validatedRequest: ValidatedRequest[AnyContent]): Unit = logger.info(formatLog(msg, validatedRequest))
+  def error(msg: => String)(implicit validatedRequest: ValidatedRequest[AnyContent]): Unit = logger.error(formatLog(msg, validatedRequest))
 }

@@ -14,23 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.dit.licence.logging
+package uk.gov.hmrc.customs.dit.licence.domain
 
-import play.api.mvc.AnyContent
-import uk.gov.hmrc.customs.dit.licence.model.ValidatedRequest
+trait CustomsDitLicencesConfig {
 
-object LoggingHelper {
-
-  def formatLog(msg: String, validatedRequest: ValidatedRequest[AnyContent]): String = {
-    formatMessage(msg, validatedRequest)
-  }
-
-  private def formatMessage(msg: String, validatedRequest: ValidatedRequest[AnyContent]): String = {
-    s"${format(validatedRequest)} $msg".trim
-  }
-
-  private def format(validatedRequest: ValidatedRequest[AnyContent]): String = {
-    s"[correlationId=${validatedRequest.requestData.correlationId}]"
-  }
+  def basicAuthTokenInternal: String
 
 }
