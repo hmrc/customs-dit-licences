@@ -43,7 +43,6 @@ class ValidateAndExtractHeadersActionSpec extends UnitSpec with Matchers with Mo
   "ValidateAndExtractHeadersAction" should {
     "when valid headers are submitted then return a ValidatedRequest" in {
       val request = FakeRequest().withXmlBody(ValidXML).withHeaders(ValidHeaders.toSeq:_*)
-
       when(mockHeaderValidator.validateHeaders(request)).thenReturn(Right(TestRequestData))
 
       val result: Result = await(actionRefiner.invokeBlock(request, blockReturningOk))
@@ -53,7 +52,6 @@ class ValidateAndExtractHeadersActionSpec extends UnitSpec with Matchers with Mo
 
     "when invalid headers are submitted then return an ErrorResponse" in {
       val request = FakeRequest().withXmlBody(ValidXML).withHeaders(InvalidHeaders.toSeq:_*)
-
       when(mockHeaderValidator.validateHeaders(InvalidRequestWithoutXCorrelationId)).thenReturn(Left(ErrorXCorrelationIdMissingOrInvalid))
 
       val result: Result = await(actionRefiner.invokeBlock(request, blockReturningOk))

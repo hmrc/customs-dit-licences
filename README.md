@@ -10,12 +10,18 @@ Two endpoints are available. Both require an authorisation token.
 
 ### Licence Usage
 
-Endpoint - /send-entry-usage
+Endpoint - 
+```
+/send-entry-usage
+```
 
 
 ### Late Licence Usage
 
-Endpoint - /send-late-usage
+Endpoint - 
+```
+/send-late-usage
+```
 
 
 # Switching service endpoints

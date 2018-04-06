@@ -21,7 +21,7 @@ import play.api.libs.json.{JsObject, JsString}
 import play.api.mvc.{AnyContentAsXml, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import util.RequestHeaders.X_CORRELATION_ID_NAME
+import util.RequestHeaders.XCorrelationIdHeaderName
 import util.TestData.{InvalidRequestWithoutXCorrelationId, MalformedXmlRequest, ValidRequest}
 import util.externalservices.DitLiteService
 
@@ -86,7 +86,7 @@ class CustomsDitLicencesUnhappyPathSpec extends AcceptanceTestSpec
       val resultFuture = result.value
 
       status(resultFuture) shouldBe BAD_REQUEST
-      headers(resultFuture).get(X_CORRELATION_ID_NAME) shouldBe 'defined
+      headers(resultFuture).get(XCorrelationIdHeaderName) shouldBe 'defined
 
       And("the response body is a \"malformed xml body\" XML")
       string2xml(contentAsString(resultFuture)) shouldBe string2xml(MalformedXmlBodyError)
@@ -108,7 +108,7 @@ class CustomsDitLicencesUnhappyPathSpec extends AcceptanceTestSpec
     val resultFuture = result.value
 
     status(resultFuture) shouldBe BAD_REQUEST
-    headers(resultFuture).get(X_CORRELATION_ID_NAME) shouldBe 'defined
+    headers(resultFuture).get(XCorrelationIdHeaderName) shouldBe 'defined
 
     And("the response body is a \"malformed xml body\" XML")
     string2xml(contentAsString(resultFuture)) shouldBe string2xml(MalformedXmlBodyError)
@@ -162,7 +162,7 @@ class CustomsDitLicencesUnhappyPathSpec extends AcceptanceTestSpec
     val resultFuture = result.value
 
     status(resultFuture) shouldBe INTERNAL_SERVER_ERROR
-    headers(resultFuture).get(X_CORRELATION_ID_NAME) shouldBe 'defined
+    headers(resultFuture).get(XCorrelationIdHeaderName) shouldBe 'defined
 
     And("the response body is the xml supplied by DIT-LITE")
     string2xml(contentAsString(resultFuture)) shouldBe string2xml("<some>xml</some>")

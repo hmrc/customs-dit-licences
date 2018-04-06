@@ -44,7 +44,7 @@ object TestData {
     .withXmlBody(ValidXML)
 
   lazy val InvalidRequestWithoutXCorrelationId: FakeRequest[AnyContentAsXml] = ValidRequest
-    .copyFakeRequest(headers = ValidRequest.headers.remove(X_CORRELATION_ID_NAME))
+    .copyFakeRequest(headers = ValidRequest.headers.remove(XCorrelationIdHeaderName))
 
   lazy val MalformedXmlRequest: FakeRequest[AnyContentAsText] = ValidRequest.withTextBody("<xml><non_well_formed><xml>")
 
@@ -56,27 +56,27 @@ object TestData {
 
 object RequestHeaders {
 
-  val CONTENT_TYPE_HEADER: (String, String) = CONTENT_TYPE -> s"$XML; charset=UTF-8"
-  val CONTENT_TYPE_HEADER_INVALID: (String, String) = CONTENT_TYPE -> "somethinginvalid"
+  val ContentTypeHeader: (String, String) = CONTENT_TYPE -> s"$XML; charset=UTF-8"
+  val ContentTypeHeaderInvalid: (String, String) = CONTENT_TYPE -> "somethinginvalid"
 
-  val ACCEPT_HEADER: (String, String) = ACCEPT -> "application/xml"
-  val ACCEPT_HEADER_INVALID: (String, String) = ACCEPT -> "invalid"
+  val AcceptHeader: (String, String) = ACCEPT -> "application/xml"
+  val AcceptHeaderInvalid: (String, String) = ACCEPT -> "invalid"
 
-  val AUTH_HEADER_TOKEN_INTERNAL = "dummy-token-internal"
-  val AUTH_HEADER_VALUE_INTERNAL: String = s"Basic $AUTH_HEADER_TOKEN_INTERNAL"
-  val AUTH_HEADER_INTERNAL: (String, String) = HeaderNames.AUTHORIZATION -> AUTH_HEADER_VALUE_INTERNAL
-  val AUTH_HEADER_INTERNAL_INVALID: (String, String) = HeaderNames.AUTHORIZATION -> "some-invalid-auth-internal"
+  val AuthHeaderTokenInternal = "dummy-token-internal"
+  val AuthHeaderValueInternal: String = s"Basic $AuthHeaderTokenInternal"
+  val AuthHeaderInternal: (String, String) = HeaderNames.AUTHORIZATION -> AuthHeaderValueInternal
+  val AuthHeaderInternalInvalid: (String, String) = HeaderNames.AUTHORIZATION -> "some-invalid-auth-internal"
 
-  val X_CORRELATION_ID_NAME = "X-Correlation-ID"
-  val X_CORRELATION_ID_HEADER: (String, String) = X_CORRELATION_ID_NAME -> correlationId
-  val X_CORRELATION_ID_HEADER_INVALID: (String, String) = X_CORRELATION_ID_NAME -> "invalid-uuid"
+  val XCorrelationIdHeaderName = "X-Correlation-ID"
+  val XCorrelationIdHeader: (String, String) = XCorrelationIdHeaderName -> correlationId
+  val XCorrelationIdHeaderInvalid: (String, String) = XCorrelationIdHeaderName -> "invalid-uuid"
 
   val ValidHeaders = Map(
-    CONTENT_TYPE_HEADER,
-    ACCEPT_HEADER,
-    AUTH_HEADER_INTERNAL,
-    X_CORRELATION_ID_HEADER)
+    ContentTypeHeader,
+    AcceptHeader,
+    AuthHeaderInternal,
+    XCorrelationIdHeader)
 
-  val InvalidHeaders: Map[String, String] = ValidHeaders - X_CORRELATION_ID_NAME
+  val InvalidHeaders: Map[String, String] = ValidHeaders - XCorrelationIdHeaderName
 
 }

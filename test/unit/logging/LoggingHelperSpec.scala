@@ -26,17 +26,19 @@ import util.TestData.correlationId
 
 class LoggingHelperSpec extends UnitSpec with MockitoSugar {
 
-  private val msg = "msg"
-  val requestData = mock[RequestData]
-  val requestMock = mock[Request[AnyContent]]
-  val validatedRequest = ValidatedRequest[AnyContent](requestData, requestMock)
-  when(requestData.correlationId).thenReturn("e61f8eee-812c-4b8f-b193-06aedc60dca2")
+  trait Setup {
+    val msg = "msg"
+    val requestData: RequestData = mock[RequestData]
+    val requestMock: Request[AnyContent] = mock[Request[AnyContent]]
+    val validatedRequest: ValidatedRequest[AnyContent] = ValidatedRequest[AnyContent](requestData, requestMock)
+    when(requestData.correlationId).thenReturn("e61f8eee-812c-4b8f-b193-06aedc60dca2")
 
-  private val expectedFormattedHeaders = s"[correlationId=$correlationId]"
+    val expectedFormattedHeaders = s"[correlationId=$correlationId]"
+  }
 
   "LoggingHelper" should {
 
-    "format log" in {
+    "format log" in new Setup {
       LoggingHelper.formatLog(msg, validatedRequest) shouldBe s"$expectedFormattedHeaders $msg"
     }
 

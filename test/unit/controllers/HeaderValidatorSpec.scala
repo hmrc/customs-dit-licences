@@ -33,10 +33,14 @@ import util.TestData.{ErrorUnauthorizedBasicToken, ErrorXCorrelationIdMissingOrI
 
 class HeaderValidatorSpec extends UnitSpec with TableDrivenPropertyChecks with MockitoSugar {
 
-  private val mockLogger = mock[CdsLogger]
-  implicit val request = mock[Request[AnyContent]]
-  private val mockConfigService = mock[ConfigService]
-  private val validator = new HeaderValidator (mockConfigService, mockLogger)
+  trait Setup {
+    val mockLogger = mock[CdsLogger]
+    implicit val request = mock[Request[AnyContent]]
+    val mockConfigService = mock[ConfigService]
+    val validator = new HeaderValidator (mockConfigService, mockLogger)
+
+    when(mockConfigService.basicAuthTokenInternal).thenReturn(AuthHeaderTokenInternal)
+  }
 
   val headersTable =
     Table(
@@ -45,19 +49,18 @@ class HeaderValidatorSpec extends UnitSpec with TableDrivenPropertyChecks with M
       ("Valid content type XML with no space header", ValidHeaders + (CONTENT_TYPE -> "application/xml;charset=utf-8"), Right(TestRequestData)),
       ("Missing accept header", ValidHeaders - ACCEPT, Left(ErrorAcceptHeaderInvalid)),
       ("Missing content type header", ValidHeaders - CONTENT_TYPE, Left(ErrorContentTypeHeaderInvalid)),
-      ("Missing X-Correlation-ID header", ValidHeaders - X_CORRELATION_ID_NAME, Left(ErrorXCorrelationIdMissingOrInvalid)),
+      ("Missing X-Correlation-ID header", ValidHeaders - XCorrelationIdHeaderName, Left(ErrorXCorrelationIdMissingOrInvalid)),
       ("Missing auth header", ValidHeaders - HeaderNames.AUTHORIZATION, Left(ErrorUnauthorizedBasicToken)),
-      ("Invalid accept header", ValidHeaders + ACCEPT_HEADER_INVALID, Left(ErrorAcceptHeaderInvalid)),
-      ("Invalid content type header", ValidHeaders + CONTENT_TYPE_HEADER_INVALID, Left(ErrorContentTypeHeaderInvalid)),
+      ("Invalid accept header", ValidHeaders + AcceptHeaderInvalid, Left(ErrorAcceptHeaderInvalid)),
+      ("Invalid content type header", ValidHeaders + ContentTypeHeaderInvalid, Left(ErrorContentTypeHeaderInvalid)),
       ("Invalid content type XML without UTF-8 header", ValidHeaders + (CONTENT_TYPE -> "application/xml"), Left(ErrorContentTypeHeaderInvalid)),
-      ("Invalid X-Correlation-ID header", ValidHeaders + X_CORRELATION_ID_HEADER_INVALID, Left(ErrorXCorrelationIdMissingOrInvalid)),
-      ("Invalid auth header", ValidHeaders + AUTH_HEADER_INTERNAL_INVALID, Left(ErrorUnauthorizedBasicToken))
+      ("Invalid X-Correlation-ID header", ValidHeaders + XCorrelationIdHeaderInvalid, Left(ErrorXCorrelationIdMissingOrInvalid)),
+      ("Invalid auth header", ValidHeaders + AuthHeaderInternalInvalid, Left(ErrorUnauthorizedBasicToken))
     )
 
   "HeaderValidatorAction" should {
     forAll(headersTable) { (description, headers, response) =>
-      s"$description" in {
-        when(mockConfigService.basicAuthTokenInternal).thenReturn(AUTH_HEADER_TOKEN_INTERNAL)
+      s"$description" in new Setup {
         when(request.headers).thenReturn(new Headers(headers.toSeq))
 
         validator.validateHeaders(request) shouldBe response

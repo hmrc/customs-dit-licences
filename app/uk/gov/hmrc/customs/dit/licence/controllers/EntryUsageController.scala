@@ -26,6 +26,7 @@ import uk.gov.hmrc.customs.dit.licence.connectors.DitLiteConnector
 import uk.gov.hmrc.customs.dit.licence.controllers.CustomHeaderNames.X_CORRELATION_ID_HEADER_NAME
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
 import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}
+import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -45,10 +46,7 @@ class EntryUsageController @Inject() (validateAndExtractHeadersAction: ValidateA
       validatedRequest.request.body.asXml match {
         case Some(_) =>
           ditLiteConnector.post(configKey).map { response =>
-            var headers = response.allHeaders.map {
-              h => (h._1, h._2.head)
-            }
-            headers += correlationIdHeader(validatedRequest.requestData)
+            val headers = extractHeaders(response) + correlationIdHeader(validatedRequest.requestData)
             logger.debug(s"sending the DIT-LITE response to backend with status ${response.status} and\nresponse headers=$headers \nresponse payload=${response.body}")
             Result(ResponseHeader(response.status, headers), Strict(ByteString(response.body), Some(s"${MimeTypes.XML}; charset=UTF-8")))
           }
@@ -56,6 +54,7 @@ class EntryUsageController @Inject() (validateAndExtractHeadersAction: ValidateA
           logger.error("Malformed XML")
           Future.successful(ErrorResponse.errorBadRequest("Malformed XML").XmlResult.withHeaders(correlationIdHeader(validatedRequest.requestData)))
       }
+
   }
 
   private def xmlOrEmptyBody: BodyParser[AnyContent] = BodyParser(rq => parse.xml(rq).map {
@@ -63,7 +62,12 @@ class EntryUsageController @Inject() (validateAndExtractHeadersAction: ValidateA
     case _ => Right(AnyContentAsEmpty)
   })
 
-  private def correlationIdHeader(request: RequestData) = {
-    X_CORRELATION_ID_HEADER_NAME -> request.correlationId
+  private def correlationIdHeader(requestData: RequestData) = {
+    X_CORRELATION_ID_HEADER_NAME -> requestData.correlationId
   }
+
+  private def extractHeaders(response: HttpResponse): Map[String, String] = {
+    response.allHeaders.map(h => (h._1, h._2.head))
+  }
+
 }

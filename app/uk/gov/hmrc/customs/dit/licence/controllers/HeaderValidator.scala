@@ -77,7 +77,7 @@ class HeaderValidator @Inject() (configService: ConfigService, logger: CdsLogger
     h.get(headerName).fold[Either[ErrorResponse, String]]{
       leftWithLog
     }{
-      h => if (rule(h)) Right(h) else leftWithLogContainingValue(h)
+      v => if (rule(v)) Right(v) else leftWithLogContainingValue(v)
     }
   }
 }

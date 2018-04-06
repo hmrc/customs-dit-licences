@@ -16,10 +16,11 @@
 
 package unit.connector
 
+import com.typesafe.config.{Config, ConfigFactory}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{eq => ameq, _}
 import org.mockito.Mockito._
-import org.scalatest.BeforeAndAfterEach
+import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.concurrent.Eventually
 import org.scalatest.mockito.MockitoSugar
 import play.api.http.HeaderNames
@@ -32,36 +33,61 @@ import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}
 import uk.gov.hmrc.customs.dit.licence.services.WSHttp
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 import uk.gov.hmrc.play.test.UnitSpec
+import util.ExternalServicesConfig.{Host, Port}
 import util.TestData._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class DitLiteConnectorSpec extends UnitSpec with MockitoSugar with BeforeAndAfterEach with Eventually {
+class DitLiteConnectorSpec extends UnitSpec with MockitoSugar with Eventually {
 
-  private val mockWsPost = mock[WSHttp]
-  private val mockLicencesLogger = mock[LicencesLogger]
-  private val mockServiceConfigProvider = mock[ServiceConfigProvider]
+  trait Setup {
+    val mockWsPost = mock[WSHttp]
+    val mockLicencesLogger = mock[LicencesLogger]
+    val mockServiceConfigProvider = mock[ServiceConfigProvider]
 
-  private val connector = new DitLiteConnector(mockWsPost, mockServiceConfigProvider, mockLicencesLogger)
+    val connector = new DitLiteConnector(mockWsPost, mockServiceConfigProvider, mockLicencesLogger)
 
-  private val configKey = "dit-lite-entry-usage"
-  private val config = ServiceConfig("some-url", Some("bearer-token"), "default")
+    val configKey = "dit-lite-entry-usage"
+    val config = ServiceConfig("some-url", Some("bearer-token"), "default")
 
-  private implicit val hc: HeaderCarrier = HeaderCarrier()
+    implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  override protected def beforeEach() {
-    reset(mockWsPost, mockServiceConfigProvider, mockLicencesLogger)
+    lazy val invalidConfig: Config = ConfigFactory.parseString(
+      s"""
+         |Test {
+         |  microservice {
+         |    services {
+         |      unknown {
+         |        host = $Host
+         |        port = $Port
+         |        context = /some-context
+         |      }
+         |    }
+         |  }
+         |}
+    """.stripMargin)
+
+    val requestData: RequestData = RequestData(correlationId)
+    implicit val validatedRequest: ValidatedRequest[AnyContent] = ValidatedRequest[AnyContent](requestData, ValidRequest)
+
     when(mockServiceConfigProvider.getConfig(configKey)).thenReturn(config)
-  }
 
-  private val requestData: RequestData = RequestData(correlationId)
-  private implicit val validatedRequest: ValidatedRequest[AnyContent] = ValidatedRequest[AnyContent](requestData, ValidRequest)
+    def awaitRequest: HttpResponse = {
+      await(connector.post(configKey))
+    }
+
+    def returnResponseForRequest(eventualResponse: Future[HttpResponse]): OngoingStubbing[Future[HttpResponse]] = {
+      when(mockWsPost.POSTString(anyString, anyString, any[Seq[(String, String)]])(
+        any[HttpReads[HttpResponse]](), any[HeaderCarrier](), any[ExecutionContext]))
+        .thenReturn(eventualResponse)
+    }
+  }
 
   "DitLiteConnector" can {
 
     "when making a successful request" should {
 
-      "pass URL from config" in {
+      "pass URL from config" in new Setup {
         returnResponseForRequest(Future.successful(mock[HttpResponse]))
 
         awaitRequest
@@ -70,7 +96,7 @@ class DitLiteConnectorSpec extends UnitSpec with MockitoSugar with BeforeAndAfte
           any[HttpReads[HttpResponse]](), any[HeaderCarrier](), any[ExecutionContext])
       }
 
-      "pass the xml in the body" in {
+      "pass the xml in the body" in new Setup {
         returnResponseForRequest(Future.successful(mock[HttpResponse]))
 
         awaitRequest
@@ -79,7 +105,7 @@ class DitLiteConnectorSpec extends UnitSpec with MockitoSugar with BeforeAndAfte
           any[HttpReads[HttpResponse]](), any[HeaderCarrier](), any[ExecutionContext])
       }
 
-      "set the content type header" in {
+      "set the content type header" in new Setup {
         returnResponseForRequest(Future.successful(mock[HttpResponse]))
 
         awaitRequest
@@ -90,7 +116,7 @@ class DitLiteConnectorSpec extends UnitSpec with MockitoSugar with BeforeAndAfte
         headersCaptor.getValue.extraHeaders should contain(HeaderNames.CONTENT_TYPE -> (MimeTypes.XML + "; charset=UTF-8"))
       }
 
-      "set the accept header" in {
+      "set the accept header" in new Setup {
         returnResponseForRequest(Future.successful(mock[HttpResponse]))
 
         awaitRequest
@@ -101,7 +127,7 @@ class DitLiteConnectorSpec extends UnitSpec with MockitoSugar with BeforeAndAfte
         headersCaptor.getValue.extraHeaders should contain(HeaderNames.ACCEPT -> MimeTypes.XML)
       }
 
-      "set the X-Correlation-Id header" in {
+      "set the X-Correlation-Id header" in new Setup {
         returnResponseForRequest(Future.successful(mock[HttpResponse]))
 
         awaitRequest
@@ -115,25 +141,29 @@ class DitLiteConnectorSpec extends UnitSpec with MockitoSugar with BeforeAndAfte
     }
 
     "when making an failing request" should {
-      "propagate an underlying error when DIT-LITE call fails with a non-http exception" in {
+      "propagate an underlying error when DIT-LITE call fails with a non-http exception" in new Setup {
         returnResponseForRequest(Future.failed(emulatedServiceFailure))
 
         val caught = intercept[EmulatedServiceFailure] {
           awaitRequest
         }
+
         caught shouldBe emulatedServiceFailure
       }
+    }
 
+    "when configuration is invalid" should {
+      "throw IllegalStateException when token is missing" in new Setup {
+        val caught = intercept[IllegalStateException] {
+          val missingTokenConfig = ServiceConfig("url", None, "Test")
+          when(mockServiceConfigProvider.getConfig(configKey)).thenReturn(missingTokenConfig)
+
+          awaitRequest
+        }
+
+        caught.getMessage shouldBe "no basic token was found in config"
+      }
     }
   }
 
-  private def awaitRequest = {
-    await(connector.post(configKey))
-  }
-
-  private def returnResponseForRequest(eventualResponse: Future[HttpResponse]) = {
-    when(mockWsPost.POSTString(anyString, anyString, any[Seq[(String, String)]])(
-      any[HttpReads[HttpResponse]](), any[HeaderCarrier](), any[ExecutionContext]))
-      .thenReturn(eventualResponse)
-  }
 }

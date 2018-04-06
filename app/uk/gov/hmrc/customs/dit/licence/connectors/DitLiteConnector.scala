@@ -37,7 +37,7 @@ class DitLiteConnector @Inject()(wsHttp: WSHttp,
 
   def post(configKey: String)(implicit validatedRequest: ValidatedRequest[AnyContent]): Future[HttpResponse] = {
 
-    val config = Option(serviceConfigProvider.getConfig(configKey)).getOrElse(throw new IllegalArgumentException("config not found"))
+    val config = serviceConfigProvider.getConfig(configKey)
     val basicToken = "Basic " + config.bearerToken.getOrElse(throw new IllegalStateException("no basic token was found in config"))
 
     implicit val hc: HeaderCarrier = HeaderCarrier(extraHeaders = getHeaders(validatedRequest.requestData), authorization = Some(Authorization(basicToken)))
