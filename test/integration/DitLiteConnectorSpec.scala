@@ -16,9 +16,7 @@
 
 package integration
 
-import org.scalatest.BeforeAndAfterAll
 import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.AnyContent
@@ -30,8 +28,7 @@ import util.TestData._
 import util.externalservices.DitLiteService
 import util.{CustomsDitLiteExternalServicesConfig, ExternalServicesConfig}
 
-class DitLiteConnectorSpec extends IntegrationTestSpec with GuiceOneAppPerSuite with MockitoSugar
-  with BeforeAndAfterAll with DitLiteService {
+class DitLiteConnectorSpec extends IntegrationTestSpec with MockitoSugar with DitLiteService {
 
   private lazy val connector = app.injector.instanceOf[DitLiteConnector]
   private val protocol = "http"
