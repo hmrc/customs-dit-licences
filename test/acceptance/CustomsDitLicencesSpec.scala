@@ -37,7 +37,7 @@ class CustomsDitLicencesSpec extends AcceptanceTestSpec {
     stopMockServer()
   }
 
-  private val controllers = Table(("Message Type Description", "Usage Message Type", "url"),
+  private val controllers = Table(("Message Type Description", "Request", "External Service Context"),
     ("Entry Usage", ValidEntryRequest,  DitLiteEntryUsageServiceContext),
     ("Late Usage", ValidLateRequest, DitLiteLateUsageServiceContext)
   )

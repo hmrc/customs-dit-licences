@@ -56,7 +56,7 @@ class DitLiteConnectorSpec extends UnitSpec with BeforeAndAfterAll with BeforeAn
 
   override implicit lazy val app: Application = new GuiceApplicationBuilder().configure(conf).build()
 
-  private val controllers = Table(("Message Type Description", "Url", "Config Key"),
+  private val controllers = Table(("Message Type Description", "External Service Context", "Config Key"),
     ("Entry Usage", DitLiteEntryUsageServiceContext, EntryUsage),
     ("Late Usage", DitLiteLateUsageServiceContext, LateUsage)
   )

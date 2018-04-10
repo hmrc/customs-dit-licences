@@ -32,7 +32,6 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 abstract class UsageController @Inject() (validateAndExtractHeadersAction: ValidateAndExtractHeadersAction,
                                           ditLiteConnector: DitLiteConnector,
@@ -49,10 +48,6 @@ abstract class UsageController @Inject() (validateAndExtractHeadersAction: Valid
             val headers = extractHeaders(response) + correlationIdHeader(validatedRequest.requestData)
             logger.debug(s"sending the DIT-LITE response to backend with status ${response.status} and\nresponse headers=$headers \nresponse payload=${response.body}")
             Result(ResponseHeader(response.status, headers), Strict(ByteString(response.body), Some(s"${MimeTypes.XML}; charset=UTF-8")))
-          }.recoverWith {
-            case NonFatal(e) =>
-              logger.error(s"DIT-LITE call failed: ${e.getMessage}", e)
-              Future.successful(ErrorResponse.ErrorInternalServerError.XmlResult.withHeaders(correlationIdHeader(validatedRequest.requestData)))
           }
 
         case _ =>
