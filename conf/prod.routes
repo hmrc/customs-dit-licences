@@ -1,4 +1,5 @@
 ->         /                     health.Routes
 
 POST       /send-entry-usage     @uk.gov.hmrc.customs.dit.licence.controllers.EntryUsageController.post()
+POST       /send-late-usage      @uk.gov.hmrc.customs.dit.licence.controllers.LateUsageController.post()
 GET        /admin/metrics        @com.kenshoo.play.metrics.MetricsController.metrics

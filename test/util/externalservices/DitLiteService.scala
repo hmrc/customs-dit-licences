@@ -17,23 +17,27 @@
 package util.externalservices
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import play.api.http.MimeTypes
 import play.api.test.Helpers._
-import util.{CustomsDitLiteExternalServicesConfig, ExternalServicesConfig, WireMockRunner}
+import util.{ExternalServicesConfig, WireMockRunner}
 
 trait DitLiteService extends WireMockRunner {
-  private val urlMatchingRequestPath = urlMatching(CustomsDitLiteExternalServicesConfig.DitLiteEntryUsageServiceContext)
 
-  def startDitLiteService(status: Int): Unit =
-    stubFor(post(urlMatchingRequestPath).
-      willReturn(
-        aResponse()
-          .withStatus(status)
-          .withBody("<some>xml</some>")))
+  def setupBackendServiceToReturn(requestPath: String, status: Int): Unit =
+    stubFor(post(urlMatching(requestPath))
+      .withHeader(ACCEPT, equalTo(MimeTypes.XML))
+      .withHeader(CONTENT_TYPE, equalTo(s"${MimeTypes.XML}; charset=UTF-8"))
+      .withHeader("X-Correlation-ID", matching("^[A-Za-z0-9-]{36}$"))
+      .withHeader(AUTHORIZATION, equalTo(s"Basic ${ExternalServicesConfig.AuthToken}"))
+      willReturn aResponse()
+      .withStatus(status)
+      .withBody("<some>xml</some>"))
 
-  def verifyDitLiteServiceWasCalledWith(requestBody: String,
+  def verifyDitLiteServiceWasCalledWith(requestPath: String,
+                                        requestBody: String,
                                         expectedAuthToken: String = ExternalServicesConfig.AuthToken,
                                         maybeUnexpectedAuthToken: Option[String] = None) {
-    verify(1, postRequestedFor(urlMatchingRequestPath)
+    verify(1, postRequestedFor(urlMatching(requestPath))
       .withHeader(CONTENT_TYPE, equalTo(XML + "; charset=UTF-8"))
       .withHeader(ACCEPT, equalTo(XML))
       .withHeader(AUTHORIZATION, equalTo(s"Basic $expectedAuthToken"))
@@ -42,7 +46,7 @@ trait DitLiteService extends WireMockRunner {
       )
 
     maybeUnexpectedAuthToken foreach { unexpectedAuthToken =>
-      verify(0, postRequestedFor(urlMatchingRequestPath).withHeader(AUTHORIZATION, equalTo(s"Basic $unexpectedAuthToken")))
+      verify(0, postRequestedFor(urlMatching(requestPath)).withHeader(AUTHORIZATION, equalTo(s"Basic $unexpectedAuthToken")))
     }
   }
 }

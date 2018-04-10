@@ -17,32 +17,27 @@
 package acceptance
 
 import org.scalatest._
+import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import util.{CustomsDitLiteExternalServicesConfig, ExternalServicesConfig}
+import util.TestData.conf
+import util.externalservices.DitLiteService
 
 import scala.util.control.NonFatal
 import scala.xml.{Node, Utility, XML}
 
-trait AcceptanceTestSpec extends FeatureSpec with GivenWhenThen with GuiceOneAppPerSuite
-   with BeforeAndAfterAll with BeforeAndAfterEach {
+trait AcceptanceTestSpec extends FeatureSpec
+    with GivenWhenThen
+    with GuiceOneAppPerSuite
+    with BeforeAndAfterAll
+    with BeforeAndAfterEach
+    with Matchers
+    with OptionValues
+    with DitLiteService
+    with TableDrivenPropertyChecks {
 
-  private val protocol = "http"
-
-  override implicit lazy val app: Application = new GuiceApplicationBuilder().configure(Map(
-    "microservice.services.dit-lite-entry-usage.protocol" -> protocol,
-    "microservice.services.dit-lite-entry-usage.host" -> ExternalServicesConfig.Host,
-    "microservice.services.dit-lite-entry-usage.port" -> ExternalServicesConfig.Port,
-    "microservice.services.dit-lite-entry-usage.context" -> CustomsDitLiteExternalServicesConfig.DitLiteEntryUsageServiceContext,
-    "microservice.services.dit-lite-entry-usage.bearer-token" -> ExternalServicesConfig.AuthToken,
-    "microservice.services.dit-lite-late-usage.protocol" -> protocol,
-    "microservice.services.dit-lite-late-usage.host" -> ExternalServicesConfig.Host,
-    "microservice.services.dit-lite-late-usage.port" -> ExternalServicesConfig.Port,
-    "microservice.services.dit-lite-late-usage.context" -> CustomsDitLiteExternalServicesConfig.DitLiteLateUsageServiceContext,
-    "microservice.services.dit-lite-late-usage.bearer-token" -> ExternalServicesConfig.AuthToken,
-    "auditing.enabled" -> false
-    )).build()
+  override implicit lazy val app: Application = new GuiceApplicationBuilder().configure(conf).build()
 
   protected def string2xml(s: String): Node = {
     val xml = try {

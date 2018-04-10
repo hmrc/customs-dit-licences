@@ -17,7 +17,17 @@
 package uk.gov.hmrc.customs.dit.licence.domain
 
 trait CustomsDitLicencesConfig {
-
   def basicAuthTokenInternal: String
+}
 
+sealed trait ConfigKey {
+  def name: String
+}
+
+case object EntryUsage extends ConfigKey {
+  val name = "dit-lite-entry-usage"
+}
+
+case object LateUsage extends ConfigKey {
+  val name = "dit-lite-late-usage"
 }

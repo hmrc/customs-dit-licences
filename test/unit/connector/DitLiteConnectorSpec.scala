@@ -28,10 +28,11 @@ import play.api.mvc.AnyContent
 import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.customs.api.common.config.{ServiceConfig, ServiceConfigProvider}
 import uk.gov.hmrc.customs.dit.licence.connectors.DitLiteConnector
+import uk.gov.hmrc.customs.dit.licence.domain.{ConfigKey, EntryUsage}
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
 import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}
 import uk.gov.hmrc.customs.dit.licence.services.WSHttp
-import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse, NotFoundException}
 import uk.gov.hmrc.play.test.UnitSpec
 import util.ExternalServicesConfig.{Host, Port}
 import util.TestData._
@@ -44,10 +45,9 @@ class DitLiteConnectorSpec extends UnitSpec with MockitoSugar with Eventually {
     val mockWsPost = mock[WSHttp]
     val mockLicencesLogger = mock[LicencesLogger]
     val mockServiceConfigProvider = mock[ServiceConfigProvider]
+    val configKey = mock[ConfigKey]
 
     val connector = new DitLiteConnector(mockWsPost, mockServiceConfigProvider, mockLicencesLogger)
-
-    val configKey = "dit-lite-entry-usage"
     val config = ServiceConfig("some-url", Some("bearer-token"), "default")
 
     implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -67,10 +67,10 @@ class DitLiteConnectorSpec extends UnitSpec with MockitoSugar with Eventually {
          |}
     """.stripMargin)
 
-    val requestData: RequestData = RequestData(correlationId)
+    private val requestData: RequestData = RequestData(correlationId)
     implicit val validatedRequest: ValidatedRequest[AnyContent] = ValidatedRequest[AnyContent](requestData, ValidRequest)
 
-    when(mockServiceConfigProvider.getConfig(configKey)).thenReturn(config)
+    when(mockServiceConfigProvider.getConfig(configKey.name)).thenReturn(config)
 
     def awaitRequest: HttpResponse = {
       await(connector.post(configKey))
@@ -156,7 +156,7 @@ class DitLiteConnectorSpec extends UnitSpec with MockitoSugar with Eventually {
       "throw IllegalStateException when token is missing" in new Setup {
         val caught = intercept[IllegalStateException] {
           val missingTokenConfig = ServiceConfig("url", None, "Test")
-          when(mockServiceConfigProvider.getConfig(configKey)).thenReturn(missingTokenConfig)
+          when(mockServiceConfigProvider.getConfig(configKey.name)).thenReturn(missingTokenConfig)
 
           awaitRequest
         }
