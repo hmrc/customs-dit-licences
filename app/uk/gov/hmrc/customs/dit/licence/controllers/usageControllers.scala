@@ -41,7 +41,7 @@ abstract class UsageController @Inject() (validateAndExtractHeadersAction: Valid
   def process(): Action[AnyContent] = (Action andThen validateAndExtractHeadersAction).async(bodyParser = xmlOrEmptyBody) {
     implicit validatedRequest: ValidatedRequest[AnyContent] =>
 
-      logger.info(s"entered ${getClass.getSimpleName} after validating headers")
+      logger.info(s"processing ${getClass.getSimpleName} request after validating headers")
       validatedRequest.request.body.asXml match {
         case Some(_) =>
           ditLiteConnector.post(configKey).map { response =>
