@@ -17,25 +17,27 @@
 package integration
 
 import org.scalatest.mockito.MockitoSugar
+import org.scalatest.prop.TableDrivenPropertyChecks
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.AnyContent
 import play.api.test.Helpers._
 import uk.gov.hmrc.customs.dit.licence.connectors.DitLiteConnector
+import uk.gov.hmrc.customs.dit.licence.domain.{ConfigKey, EntryUsage, LateUsage}
 import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.play.test.UnitSpec
+import util.CustomsDitLiteExternalServicesConfig.{DitLiteEntryUsageServiceContext, DitLiteLateUsageServiceContext}
 import util.TestData._
 import util.externalservices.DitLiteService
-import util.{CustomsDitLiteExternalServicesConfig, ExternalServicesConfig}
 
-class DitLiteConnectorSpec extends IntegrationTestSpec with MockitoSugar with DitLiteService {
+class DitLiteConnectorSpec extends UnitSpec with BeforeAndAfterAll with BeforeAndAfterEach with MockitoSugar with TableDrivenPropertyChecks with GuiceOneAppPerSuite with DitLiteService {
 
   private lazy val connector = app.injector.instanceOf[DitLiteConnector]
-  private val protocol = "http"
-
   private val externalAuthToken = "external-token"
   private val internalAuthToken = s"Basic $externalAuthToken"
-  private val configKey = "dit-lite-entry-usage"
   private implicit val headerCarrier: HeaderCarrier = mock[HeaderCarrier]
   private val requestData: RequestData = RequestData("e61f8eee-812c-4b8f-b193-06aedc60dca2")
   private implicit val validatedRequest: ValidatedRequest[AnyContent] = ValidatedRequest[AnyContent](requestData, ValidRequest)
@@ -52,48 +54,47 @@ class DitLiteConnectorSpec extends IntegrationTestSpec with MockitoSugar with Di
     stopMockServer()
   }
 
-  override implicit lazy val app: Application = new GuiceApplicationBuilder().configure(Map(
-    "microservice.services.dit-lite-entry-usage.protocol" -> protocol,
-    "microservice.services.dit-lite-entry-usage.host" -> ExternalServicesConfig.Host,
-    "microservice.services.dit-lite-entry-usage.port" -> ExternalServicesConfig.Port,
-    "microservice.services.dit-lite-entry-usage.context" -> CustomsDitLiteExternalServicesConfig.DitLiteEntryUsageServiceContext,
-    "microservice.services.dit-lite-entry-usage.bearer-token" -> ExternalServicesConfig.AuthToken,
-    "auditing.enabled" -> false
-    )).build()
+  override implicit lazy val app: Application = new GuiceApplicationBuilder().configure(conf).build()
 
+  private val controllers = Table(("Message Type Description", "External Service Context", "Config Key"),
+    ("Entry Usage", DitLiteEntryUsageServiceContext, EntryUsage),
+    ("Late Usage", DitLiteLateUsageServiceContext, LateUsage)
+  )
 
-  "DitLiteConnector" should {
+  forAll(controllers) { case (messageTypeDesc, url, configKey) =>
 
-    "make a correct request" in {
-      startDitLiteService(OK)
-      await(sendValidXml())
-      verifyDitLiteServiceWasCalledWith(requestBody = ValidXML.toString(), maybeUnexpectedAuthToken = Some(internalAuthToken))
+    s"DitLiteConnector for $messageTypeDesc" should {
+
+      s"make a correct request for $messageTypeDesc" in {
+        setupBackendServiceToReturn(url, OK)
+        await(sendValidXml(configKey))
+        verifyDitLiteServiceWasCalledWith(requestPath= url, requestBody = ValidXML.toString(), maybeUnexpectedAuthToken = Some(internalAuthToken))
+      }
+
+      s"return a failed future when external service returns 404 for $messageTypeDesc" in {
+        setupBackendServiceToReturn(url, NOT_FOUND)
+        await(sendValidXml(configKey)).status shouldBe NOT_FOUND
+      }
+
+      s"return a failed future when external service returns 400 for $messageTypeDesc" in {
+        setupBackendServiceToReturn(url, BAD_REQUEST)
+        await(sendValidXml(configKey)).status shouldBe BAD_REQUEST
+      }
+
+      s"return a failed future when external service returns 500 for $messageTypeDesc" in {
+        setupBackendServiceToReturn(url, INTERNAL_SERVER_ERROR)
+        await(sendValidXml(configKey)).status shouldBe INTERNAL_SERVER_ERROR
+      }
+
+      s"return a failed future when fail to connect the external service for $messageTypeDesc" in {
+        stopMockServer()
+        intercept[Exception](await(sendValidXml(configKey))).getClass shouldBe classOf[BadGatewayException]
+        startMockServer()
+      }
     }
-
-    "return a failed future when external service returns 404" in {
-      startDitLiteService(NOT_FOUND)
-      await(sendValidXml()).status shouldBe NOT_FOUND
-    }
-
-    "return a failed future when external service returns 400" in {
-      startDitLiteService(BAD_REQUEST)
-      await(sendValidXml()).status shouldBe BAD_REQUEST
-    }
-
-    "return a failed future when external service returns 500" in {
-      startDitLiteService(INTERNAL_SERVER_ERROR)
-      await(sendValidXml()).status shouldBe INTERNAL_SERVER_ERROR
-    }
-
-    "return a failed future when fail to connect the external service" in {
-      stopMockServer()
-      intercept[Exception](await(sendValidXml())).getClass shouldBe classOf[BadGatewayException]
-      startMockServer()
-    }
-
   }
 
-  private def sendValidXml() = {
+  private def sendValidXml(configKey: ConfigKey) = {
     connector.post(configKey)
   }
 }

@@ -42,9 +42,11 @@ object TestData {
   lazy val ValidRequest: FakeRequest[AnyContentAsXml] = FakeRequest()
     .withHeaders(ValidHeaders.toSeq: _*)
     .withXmlBody(ValidXML)
+  lazy val ValidEntryRequest = ValidRequest.copyFakeRequest(method = "POST", uri = "/send-entry-usage")
+  lazy val ValidLateRequest: FakeRequest[AnyContentAsXml] = ValidRequest.copyFakeRequest(method = "POST", uri ="/send-late-usage")
 
-  lazy val InvalidRequestWithoutXCorrelationId: FakeRequest[AnyContentAsXml] = ValidRequest
-    .copyFakeRequest(headers = ValidRequest.headers.remove(XCorrelationIdHeaderName))
+  lazy val InvalidRequestWithoutXCorrelationId: FakeRequest[AnyContentAsXml] =
+    ValidRequest.copyFakeRequest(headers = ValidRequest.headers.remove(XCorrelationIdHeaderName))
 
   lazy val MalformedXmlRequest: FakeRequest[AnyContentAsText] = ValidRequest.withTextBody("<xml><non_well_formed><xml>")
 
@@ -52,6 +54,21 @@ object TestData {
   lazy val ErrorUnauthorizedBasicToken = ErrorResponse(UNAUTHORIZED, UnauthorizedCode, "Basic token is missing or not authorized")
 
   val TestRequestData = RequestData(correlationId)
+  private val protocol = "http"
+
+  val conf: Map[String, Any] = Map(
+  "microservice.services.dit-lite-entry-usage.protocol" -> protocol,
+  "microservice.services.dit-lite-entry-usage.host" -> ExternalServicesConfig.Host,
+  "microservice.services.dit-lite-entry-usage.port" -> ExternalServicesConfig.Port,
+  "microservice.services.dit-lite-entry-usage.context" -> CustomsDitLiteExternalServicesConfig.DitLiteEntryUsageServiceContext,
+  "microservice.services.dit-lite-entry-usage.bearer-token" -> ExternalServicesConfig.AuthToken,
+  "microservice.services.dit-lite-late-usage.protocol" -> protocol,
+  "microservice.services.dit-lite-late-usage.host" -> ExternalServicesConfig.Host,
+  "microservice.services.dit-lite-late-usage.port" -> ExternalServicesConfig.Port,
+  "microservice.services.dit-lite-late-usage.context" -> CustomsDitLiteExternalServicesConfig.DitLiteLateUsageServiceContext,
+  "microservice.services.dit-lite-late-usage.bearer-token" -> ExternalServicesConfig.AuthToken,
+  "auditing.enabled" -> false
+  )
 }
 
 object RequestHeaders {

@@ -16,23 +16,14 @@
 
 package acceptance
 
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, OptionValues}
-import play.api.mvc.{AnyContentAsXml, Result}
-import play.api.test.FakeRequest
+import play.api.mvc.Result
 import play.api.test.Helpers._
-import util.externalservices.DitLiteService
-import util.TestData.ValidRequest
+import util.CustomsDitLiteExternalServicesConfig._
+import util.TestData.{ValidEntryRequest, ValidLateRequest}
 
 import scala.concurrent.Future
 
-class CustomsDitLicencesSpec extends AcceptanceTestSpec
-  with Matchers
-  with OptionValues
-  with BeforeAndAfterAll
-  with BeforeAndAfterEach
-  with DitLiteService {
-
-  private val entryUsageEndpoint = "/send-entry-usage"
+class CustomsDitLicencesSpec extends AcceptanceTestSpec {
 
   override protected def beforeAll() {
     startMockServer()
@@ -46,20 +37,27 @@ class CustomsDitLicencesSpec extends AcceptanceTestSpec
     stopMockServer()
   }
 
-  feature("Submissions for entry usage") {
-    scenario("Backend system successfully submits usage") {
-      Given("The backend wants to submit valid licence usage")
-      startDitLiteService(OK)
-      val request: FakeRequest[AnyContentAsXml] = ValidRequest.copyFakeRequest(method = "POST", uri = entryUsageEndpoint)
+  private val controllers = Table(("Message Type Description", "Request", "External Service Context"),
+    ("Entry Usage", ValidEntryRequest,  DitLiteEntryUsageServiceContext),
+    ("Late Usage", ValidLateRequest, DitLiteLateUsageServiceContext)
+  )
 
-      When("a POST request with data is sent to the API")
-      val result: Future[Result] = route(app = app, request).value
+  forAll(controllers) { case (messageTypeDesc, request, url) =>
 
-      Then("a response with a 200 (OK) status is received")
-      status(result) shouldBe OK
+    feature(s"Backend submits $messageTypeDesc message") {
+      scenario(s"Backend system successfully submits $messageTypeDesc") {
+        Given("a valid request")
+        setupBackendServiceToReturn(url, OK)
 
-      And("the response body is not empty")
-      contentAsString(result) should not be 'empty
+        When("a POST request with data is sent to the API")
+        val result: Future[Result] = route(app = app, request).value
+
+        Then("a response with a 200 (OK) status is received")
+        status(result) shouldBe OK
+
+        And("the response body is not empty")
+        contentAsString(result) should not be 'empty
+      }
     }
   }
 }

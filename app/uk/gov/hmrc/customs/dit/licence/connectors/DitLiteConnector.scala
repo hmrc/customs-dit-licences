@@ -21,6 +21,7 @@ import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE}
 import play.api.http.MimeTypes.XML
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.customs.api.common.config.ServiceConfigProvider
+import uk.gov.hmrc.customs.dit.licence.domain.ConfigKey
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
 import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}
 import uk.gov.hmrc.customs.dit.licence.services.WSHttp
@@ -35,9 +36,9 @@ class DitLiteConnector @Inject()(wsHttp: WSHttp,
                                  serviceConfigProvider: ServiceConfigProvider,
                                  logger: LicencesLogger) extends RawResponseReads {
 
-  def post(configKey: String)(implicit validatedRequest: ValidatedRequest[AnyContent]): Future[HttpResponse] = {
+  def post(configKey: ConfigKey)(implicit validatedRequest: ValidatedRequest[AnyContent]): Future[HttpResponse] = {
 
-    val config = serviceConfigProvider.getConfig(configKey)
+    val config = serviceConfigProvider.getConfig(configKey.name)
     val basicToken = "Basic " + config.bearerToken.getOrElse(throw new IllegalStateException("no basic token was found in config"))
 
     implicit val hc: HeaderCarrier = HeaderCarrier(extraHeaders = getHeaders(validatedRequest.requestData), authorization = Some(Authorization(basicToken)))
