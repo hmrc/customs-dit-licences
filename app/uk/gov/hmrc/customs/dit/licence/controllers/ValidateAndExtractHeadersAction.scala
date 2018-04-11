@@ -26,7 +26,7 @@ import scala.concurrent.Future
 class ValidateAndExtractHeadersAction @Inject()(validator: HeaderValidator,
                                                 logger: LicencesLogger) extends ActionRefiner[Request, ValidatedRequest] {
 
-  override def refine[A](inputRequest: Request[A]): Future[Either[Result, ValidatedRequest[A]]] = Future.successful {
+  protected override def refine[A](inputRequest: Request[A]): Future[Either[Result, ValidatedRequest[A]]] = Future.successful {
     implicit val r: Request[A] = inputRequest
 
     validator.validateHeaders match {
