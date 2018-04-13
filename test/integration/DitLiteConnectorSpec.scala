@@ -26,7 +26,7 @@ import play.api.mvc.AnyContent
 import play.api.test.Helpers._
 import uk.gov.hmrc.customs.dit.licence.connectors.DitLiteConnector
 import uk.gov.hmrc.customs.dit.licence.domain.{ConfigKey, EntryUsage, LateUsage}
-import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}
+import uk.gov.hmrc.customs.dit.licence.model.ValidatedRequest
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.test.UnitSpec
 import util.CustomsDitLiteExternalServicesConfig.{DitLiteEntryUsageServiceContext, DitLiteLateUsageServiceContext}
@@ -39,8 +39,7 @@ class DitLiteConnectorSpec extends UnitSpec with BeforeAndAfterAll with BeforeAn
   private val externalAuthToken = "external-token"
   private val internalAuthToken = s"Basic $externalAuthToken"
   private implicit val headerCarrier: HeaderCarrier = mock[HeaderCarrier]
-  private val requestData: RequestData = RequestData("e61f8eee-812c-4b8f-b193-06aedc60dca2")
-  private implicit val validatedRequest: ValidatedRequest[AnyContent] = ValidatedRequest[AnyContent](requestData, ValidRequest)
+  private implicit val vr: ValidatedRequest[AnyContent] = TestValidatedRequest
 
   override protected def beforeAll() {
     startMockServer()
