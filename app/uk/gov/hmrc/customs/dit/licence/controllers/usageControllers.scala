@@ -56,10 +56,11 @@ abstract class UsageController @Inject() (validateAndExtractHeadersAction: Valid
       }
 
   }
-      private def xmlOrEmptyBody: BodyParser[AnyContent] = BodyParser(rq => parse.xml(rq).map {
-      case Right(xml) => Right(AnyContentAsXml(xml))
-      case _ => Right(AnyContentAsEmpty)
-    })
+
+  private def xmlOrEmptyBody: BodyParser[AnyContent] = BodyParser(rq => parse.xml(rq).map {
+    case Right(xml) => Right(AnyContentAsXml(xml))
+    case _ => Right(AnyContentAsEmpty)
+  })
 
   private def correlationIdHeader(requestData: RequestData) = {
     X_CORRELATION_ID_HEADER_NAME -> requestData.correlationId

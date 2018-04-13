@@ -18,20 +18,19 @@ package unit.logging
 
 import org.mockito.Mockito.when
 import org.scalatest.mockito.MockitoSugar
-import play.api.mvc.{AnyContent, Request}
+import play.api.mvc.AnyContent
 import uk.gov.hmrc.customs.dit.licence.logging.LoggingHelper
 import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}
 import uk.gov.hmrc.play.test.UnitSpec
-import util.TestData.correlationId
+import util.TestData._
 
 class LoggingHelperSpec extends UnitSpec with MockitoSugar {
 
   trait Setup {
     val msg = "msg"
     val requestData: RequestData = mock[RequestData]
-    val requestMock: Request[AnyContent] = mock[Request[AnyContent]]
-    val validatedRequest: ValidatedRequest[AnyContent] = ValidatedRequest[AnyContent](requestData, requestMock)
-    when(requestData.correlationId).thenReturn("e61f8eee-812c-4b8f-b193-06aedc60dca2")
+    val validatedRequest: ValidatedRequest[AnyContent] = TestValidatedRequest
+    when(requestData.correlationId).thenReturn(correlationId)
 
     val expectedFormattedHeaders = s"[correlationId=$correlationId]"
   }

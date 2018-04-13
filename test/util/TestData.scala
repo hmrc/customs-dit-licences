@@ -19,12 +19,12 @@ package util
 import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE}
 import play.api.http.HeaderNames
 import play.api.http.MimeTypes.XML
-import play.api.mvc.{AnyContentAsText, AnyContentAsXml}
+import play.api.mvc.{AnyContent, AnyContentAsText, AnyContentAsXml}
 import play.api.test.FakeRequest
 import play.mvc.Http.Status.UNAUTHORIZED
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{UnauthorizedCode, errorBadRequest}
-import uk.gov.hmrc.customs.dit.licence.model.RequestData
+import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}
 import util.RequestHeaders._
 import util.TestData._
 
@@ -33,6 +33,7 @@ import scala.xml.NodeSeq
 object TestData {
 
   val correlationId = "e61f8eee-812c-4b8f-b193-06aedc60dca2"
+  lazy val TestValidatedRequest: ValidatedRequest[AnyContent] = ValidatedRequest[AnyContent](TestRequestData, ValidRequest)
 
   type EmulatedServiceFailure = UnsupportedOperationException
   val emulatedServiceFailure = new EmulatedServiceFailure("Emulated service failure.")

@@ -19,4 +19,5 @@ package util
 object CustomsDitLiteExternalServicesConfig {
   val DitLiteEntryUsageServiceContext = "/ditLiteService/entry-usage"
   val DitLiteLateUsageServiceContext = "/ditLiteService/late-usage"
+  val PublicNotificationServiceContext = "/send-dit-lite"
 }
