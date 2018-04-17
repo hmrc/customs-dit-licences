@@ -17,11 +17,14 @@
 package uk.gov.hmrc.customs.dit.licence.services
 
 import javax.inject.{Inject, Singleton}
-import scalaz._
-import scalaz.syntax.traverse._
+
 import uk.gov.hmrc.customs.api.common.config.ConfigValidationNelAdaptor
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.dit.licence.domain.CustomsDitLicencesConfig
+
+import scalaz.ValidationNel
+import scalaz.syntax.apply._
+import scalaz.syntax.traverse._
 
 /**
   * Responsible for reading the HMRC style Play2 configuration file, error handling, and de-serialising config into
@@ -34,17 +37,16 @@ import uk.gov.hmrc.customs.dit.licence.domain.CustomsDitLicencesConfig
   * @param configValidationNel adaptor for config services that returns a `ValidationNel`
   */
 @Singleton
-class ConfigService @Inject()(configValidationNel: ConfigValidationNelAdaptor, logger: CdsLogger) extends CustomsDitLicencesConfig {
+class LicenceConfigService @Inject()(configValidationNel: ConfigValidationNelAdaptor, logger: CdsLogger) extends CustomsDitLicencesConfig {
 
-  private case class CustomsDitLicencesConfigImpl(basicAuthTokenInternal: String) extends CustomsDitLicencesConfig
+  private case class CustomsDitLicencesConfigImpl(basicAuthTokenInternal: String, publicNotificationUrl: String) extends CustomsDitLicencesConfig
 
   private val config: CustomsDitLicencesConfig = {
 
-    val authTokenInternalNel: ValidationNel[String, String] =
-      configValidationNel.root.string("auth.token.internal")
-
-    val validatedConfig: ValidationNel[String, CustomsDitLicencesConfig] =
-      authTokenInternalNel.map(CustomsDitLicencesConfigImpl.apply)
+    val validatedConfig: ValidationNel[String, CustomsDitLicencesConfig] = (
+      configValidationNel.root.string("auth.token.internal") |@|
+      configValidationNel.service("public-notification").serviceUrl
+      )(CustomsDitLicencesConfigImpl.apply)
 
     /*
      * the fold below is also similar to how we handle the error/success cases for Play2 forms - again the underlying
@@ -62,5 +64,7 @@ class ConfigService @Inject()(configValidationNel: ConfigValidationNelAdaptor, l
 
   }
 
-  override val basicAuthTokenInternal: String = config.basicAuthTokenInternal
+  override def basicAuthTokenInternal: String = config.basicAuthTokenInternal
+
+  override def publicNotificationUrl: String = config.publicNotificationUrl
 }

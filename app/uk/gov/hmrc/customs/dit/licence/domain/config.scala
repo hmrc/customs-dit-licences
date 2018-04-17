@@ -18,6 +18,7 @@ package uk.gov.hmrc.customs.dit.licence.domain
 
 trait CustomsDitLicencesConfig {
   def basicAuthTokenInternal: String
+  def publicNotificationUrl: String
 }
 
 sealed trait ConfigKey {

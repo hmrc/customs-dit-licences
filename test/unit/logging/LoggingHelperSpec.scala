@@ -30,9 +30,9 @@ class LoggingHelperSpec extends UnitSpec with MockitoSugar {
     val msg = "msg"
     val requestData: RequestData = mock[RequestData]
     val validatedRequest: ValidatedRequest[AnyContent] = TestValidatedRequest
-    when(requestData.correlationId).thenReturn(correlationId)
+    when(requestData.correlationId).thenReturn(CorrelationId)
 
-    val expectedFormattedHeaders = s"[correlationId=$correlationId]"
+    val expectedFormattedHeaders = s"[correlationId=$CorrelationId]"
   }
 
   "LoggingHelper" should {

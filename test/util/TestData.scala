@@ -16,8 +16,8 @@
 
 package util
 
-import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE}
 import play.api.http.HeaderNames
+import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE}
 import play.api.http.MimeTypes.XML
 import play.api.mvc.{AnyContent, AnyContentAsText, AnyContentAsXml}
 import play.api.test.FakeRequest
@@ -25,6 +25,7 @@ import play.mvc.Http.Status.UNAUTHORIZED
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{UnauthorizedCode, errorBadRequest}
 import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}
+import util.CustomsDitLiteExternalServicesConfig.{DitLiteEntryUsageServiceContext, DitLiteLateUsageServiceContext}
 import util.RequestHeaders._
 import util.TestData._
 
@@ -32,7 +33,7 @@ import scala.xml.NodeSeq
 
 object TestData {
 
-  val correlationId = "e61f8eee-812c-4b8f-b193-06aedc60dca2"
+  val CorrelationId = "e61f8eee-812c-4b8f-b193-06aedc60dca2"
   lazy val TestValidatedRequest: ValidatedRequest[AnyContent] = ValidatedRequest[AnyContent](TestRequestData, ValidRequest)
 
   type EmulatedServiceFailure = UnsupportedOperationException
@@ -43,8 +44,6 @@ object TestData {
   lazy val ValidRequest: FakeRequest[AnyContentAsXml] = FakeRequest()
     .withHeaders(ValidHeaders.toSeq: _*)
     .withXmlBody(ValidXML)
-  lazy val ValidEntryRequest = ValidRequest.copyFakeRequest(method = "POST", uri = "/send-entry-usage")
-  lazy val ValidLateRequest: FakeRequest[AnyContentAsXml] = ValidRequest.copyFakeRequest(method = "POST", uri ="/send-late-usage")
 
   lazy val InvalidRequestWithoutXCorrelationId: FakeRequest[AnyContentAsXml] =
     ValidRequest.copyFakeRequest(headers = ValidRequest.headers.remove(XCorrelationIdHeaderName))
@@ -54,21 +53,25 @@ object TestData {
   lazy val ErrorXCorrelationIdMissingOrInvalid = errorBadRequest("X-Correlation-ID is missing or invalid")
   lazy val ErrorUnauthorizedBasicToken = ErrorResponse(UNAUTHORIZED, UnauthorizedCode, "Basic token is missing or not authorized")
 
-  val TestRequestData = RequestData(correlationId)
+  val TestRequestData = RequestData(CorrelationId)
   private val protocol = "http"
 
   val conf: Map[String, Any] = Map(
-  "microservice.services.dit-lite-entry-usage.protocol" -> protocol,
-  "microservice.services.dit-lite-entry-usage.host" -> ExternalServicesConfig.Host,
-  "microservice.services.dit-lite-entry-usage.port" -> ExternalServicesConfig.Port,
-  "microservice.services.dit-lite-entry-usage.context" -> CustomsDitLiteExternalServicesConfig.DitLiteEntryUsageServiceContext,
-  "microservice.services.dit-lite-entry-usage.bearer-token" -> ExternalServicesConfig.AuthToken,
-  "microservice.services.dit-lite-late-usage.protocol" -> protocol,
-  "microservice.services.dit-lite-late-usage.host" -> ExternalServicesConfig.Host,
-  "microservice.services.dit-lite-late-usage.port" -> ExternalServicesConfig.Port,
-  "microservice.services.dit-lite-late-usage.context" -> CustomsDitLiteExternalServicesConfig.DitLiteLateUsageServiceContext,
-  "microservice.services.dit-lite-late-usage.bearer-token" -> ExternalServicesConfig.AuthToken,
-  "auditing.enabled" -> false
+    "microservice.services.public-notification.host" -> ExternalServicesConfig.Host,
+    "microservice.services.public-notification.port" -> ExternalServicesConfig.Port,
+    "microservice.services.public-notification.context" -> CustomsDitLiteExternalServicesConfig.PublicNotificationServiceContext,
+
+    "microservice.services.dit-lite-entry-usage.protocol" -> protocol,
+    "microservice.services.dit-lite-entry-usage.host" -> ExternalServicesConfig.Host,
+    "microservice.services.dit-lite-entry-usage.port" -> ExternalServicesConfig.Port,
+    "microservice.services.dit-lite-entry-usage.context" -> DitLiteEntryUsageServiceContext,
+    "microservice.services.dit-lite-entry-usage.bearer-token" -> ExternalServicesConfig.AuthToken,
+    "microservice.services.dit-lite-late-usage.protocol" -> protocol,
+    "microservice.services.dit-lite-late-usage.host" -> ExternalServicesConfig.Host,
+    "microservice.services.dit-lite-late-usage.port" -> ExternalServicesConfig.Port,
+    "microservice.services.dit-lite-late-usage.context" -> DitLiteLateUsageServiceContext,
+    "microservice.services.dit-lite-late-usage.bearer-token" -> ExternalServicesConfig.AuthToken,
+    "auditing.enabled" -> false
   )
 }
 
@@ -86,7 +89,7 @@ object RequestHeaders {
   val AuthHeaderInternalInvalid: (String, String) = HeaderNames.AUTHORIZATION -> "some-invalid-auth-internal"
 
   val XCorrelationIdHeaderName = "X-Correlation-ID"
-  val XCorrelationIdHeader: (String, String) = XCorrelationIdHeaderName -> correlationId
+  val XCorrelationIdHeader: (String, String) = XCorrelationIdHeaderName -> CorrelationId
   val XCorrelationIdHeaderInvalid: (String, String) = XCorrelationIdHeaderName -> "invalid-uuid"
 
   val ValidHeaders = Map(

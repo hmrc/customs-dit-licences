@@ -45,7 +45,6 @@ object PublicNotificationResponseHeader {
 
 case class PublicNotificationResponse (
   status: Int,
-  correlationId: String,
   headers: Seq[PublicNotificationResponseHeader],
   xmlPayload: String
 )

@@ -26,10 +26,10 @@ import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse._
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.dit.licence.controllers.CustomHeaderNames.X_CORRELATION_ID_HEADER_NAME
 import uk.gov.hmrc.customs.dit.licence.model.RequestData
-import uk.gov.hmrc.customs.dit.licence.services.ConfigService
+import uk.gov.hmrc.customs.dit.licence.services.LicenceConfigService
 
 @Singleton
-class HeaderValidator @Inject() (configService: ConfigService, logger: CdsLogger) {
+class HeaderValidator @Inject() (configService: LicenceConfigService, logger: CdsLogger) {
 
   private val basicAuthTokenScheme = "Basic "
   private lazy val basicAuthToken: String = configService.basicAuthTokenInternal

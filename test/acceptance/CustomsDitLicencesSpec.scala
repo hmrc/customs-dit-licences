@@ -16,10 +16,12 @@
 
 package acceptance
 
+import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.test.Helpers._
+import uk.gov.hmrc.customs.dit.licence.model.PublicNotificationRequest
 import util.CustomsDitLiteExternalServicesConfig._
-import util.TestData.{ValidEntryRequest, ValidLateRequest}
+import util.PublicNotificationTestData.{publicNotificationResponse, _}
 
 import scala.concurrent.Future
 
@@ -37,26 +39,44 @@ class CustomsDitLicencesSpec extends AcceptanceTestSpec {
     stopMockServer()
   }
 
-  private val controllers = Table(("Message Type Description", "Request", "External Service Context"),
-    ("Entry Usage", ValidEntryRequest,  DitLiteEntryUsageServiceContext),
-    ("Late Usage", ValidLateRequest, DitLiteLateUsageServiceContext)
+  private val controllers = Table(("Message Type Description", "Request", "Request Payload", "External Service Context"),
+    ("Entry Usage", ValidEntryUsageRequest, ValidXML1, DitLiteEntryUsageServiceContext),
+    ("Late Usage", ValidLateUsageRequest, ValidXML2, DitLiteLateUsageServiceContext)
   )
 
-  forAll(controllers) { case (messageTypeDesc, request, url) =>
+
+  forAll(controllers) { case (messageTypeDesc, request, requestPayloadXml, url) =>
 
     feature(s"Backend submits $messageTypeDesc message") {
       scenario(s"Backend system successfully submits $messageTypeDesc") {
         Given("a valid request")
-        setupBackendServiceToReturn(url, OK)
+        setupPublicNotificationServiceToReturn(OK)
 
         When("a POST request with data is sent to the API")
-        val result: Future[Result] = route(app = app, request).value
+        val result: Future[Result] = route(app = app, request.withXmlBody(requestPayloadXml)).value
 
-        Then("a response with a 200 (OK) status is received")
-        status(result) shouldBe OK
+        Then("propagate status returned from public notification gateway")
+        status(result) shouldBe publicNotificationResponse.status
 
-        And("the response body is not empty")
+        And("propagate XML body returned from public notification gateway")
         contentAsString(result) should not be 'empty
+        string2xml(contentAsString(result)) shouldBe string2xml(publicNotificationResponse.xmlPayload)
+
+        And("propagate headers returned from public notification gateway")
+        (headers(result) - CACHE_CONTROL).toSet shouldBe publicNotificationResponse.headers.map(h => (h.name, h.value)).toSet
+
+        eventually {
+          And("the public notification gateway was called with the expected JSON request")
+          val requestMade = getTheCallMadeToPublicNotificationGateway
+          val publicNotificationRequestMade = Json.parse(requestMade.getBodyAsString).as[PublicNotificationRequest]
+
+          publicNotificationRequestMade.url shouldBe s"http://localhost:11111$url"
+
+          val actualHeaderSet = publicNotificationRequestMade.headers.toSet
+          actualHeaderSet shouldBe ExpectedPublicNotificationRequestHeaderSet
+
+          string2xml(publicNotificationRequestMade.xmlPayload) shouldBe requestPayloadXml
+        }
       }
     }
   }

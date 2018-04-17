@@ -17,38 +17,78 @@
 package util
 
 import controllers.Default
+import play.api.http.HeaderNames._
+import play.api.test.FakeRequest
+import play.mvc.Http.MimeTypes._
 import uk.gov.hmrc.customs.dit.licence.model._
+import util.CustomsDitLiteExternalServicesConfig.{DitLiteEntryUsageServiceContext, DitLiteLateUsageServiceContext}
+
+import scala.xml.NodeSeq
 
 object PublicNotificationTestData {
 
-  val requestHeaders = Seq(
-    PublicNotificationRequestHeader("request1", "request1Value"),
-    PublicNotificationRequestHeader("request2", "request2Value")
+
+  val ValidXML1: NodeSeq = <some1>xml1</some1>
+  val ValidXML2: NodeSeq = <some2>xml2</some2>
+
+  lazy val ValidEntryUsageRequest = FakeRequest()
+    .withHeaders(RequestHeaders.ValidHeaders.toSeq: _*)
+    .copyFakeRequest(method = "POST", uri = "/send-entry-usage")
+  lazy val ValidLateUsageRequest = FakeRequest()
+    .withHeaders(RequestHeaders.ValidHeaders.toSeq: _*)
+    .copyFakeRequest(method = "POST", uri = "/send-late-usage")
+
+  val RequestHeader1 = PublicNotificationRequestHeader("header1", "value1")
+  val RequestHeader2 = PublicNotificationRequestHeader("header2", "value2")
+  val twoRequestHeaders = Seq(
+    RequestHeader1,
+    RequestHeader2
   )
-  val publicNotificationRequest = PublicNotificationRequest("/fooBar", requestHeaders, "<request>FOO</request>")
-  val publicNotificationRequestAsJson =
+  val oneRequestHeader = Seq(
+    RequestHeader1
+  )
+  val publicNotificationEntryUsageRequest = PublicNotificationRequest(DitLiteEntryUsageServiceContext, twoRequestHeaders, "<request>FOO</request>")
+  val publicNotificationEntryUsageRequestAsJson =
     """{
-      |  "url" : "/fooBar",
+      |  "url" : "/ditLiteService/entry-usage",
       |  "headers" : [ {
-      |    "name" : "request1",
-      |    "value" : "request1Value"
+      |    "name" : "header1",
+      |    "value" : "value1"
       |  }, {
-      |    "name" : "request2",
-      |    "value" : "request2Value"
+      |    "name" : "header2",
+      |    "value" : "value2"
       |  } ],
       |  "xmlPayload" : "<request>FOO</request>"
       |}""".stripMargin
+
+  val publicNotificationLateUsageRequest = PublicNotificationRequest(DitLiteLateUsageServiceContext, oneRequestHeader, "<request>FOO</request>")
+  val publicNotificationLateUsageRequestAsJson =
+    """{
+      |  "url" : "/ditLiteService/late-usage",
+      |  "headers" : [ {
+      |    "name" : "header1",
+      |    "value" : "value1"
+      |  } ],
+      |  "xmlPayload" : "<request>FOO</request>"
+      |}""".stripMargin
+
+  val ExpectedPublicNotificationRequestHeaderSet = Set(
+    PublicNotificationRequestHeader(ACCEPT, XML),
+    PublicNotificationRequestHeader(CONTENT_TYPE, s"$XML; charset=UTF-8"),
+    PublicNotificationRequestHeader("X-Correlation-ID", TestData.CorrelationId),
+    PublicNotificationRequestHeader(AUTHORIZATION, ExternalServicesConfig.AuthToken)
+  )
+
 
   val responseHeaders = Seq(
     PublicNotificationResponseHeader("response1", "response1Value"),
     PublicNotificationResponseHeader("response2", "response2Value")
   )
 
-  val publicNotificationResponse = PublicNotificationResponse(Default.OK, TestData.correlationId, responseHeaders, "<response>BAR</response>")
+  val publicNotificationResponse = PublicNotificationResponse(Default.OK, responseHeaders, "<response>BAR</response>")
   val publicNotificationResponseAsJson =
     """{
       |  "status" : 200,
-      |  "correlationId" : "e61f8eee-812c-4b8f-b193-06aedc60dca2",
       |  "headers" : [ {
       |    "name" : "response1",
       |    "value" : "response1Value"
