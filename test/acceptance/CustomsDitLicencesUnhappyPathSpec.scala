@@ -76,7 +76,7 @@ class CustomsDitLicencesUnhappyPathSpec extends AcceptanceTestSpec {
     feature(s"The $messageTypeDesc API handles errors as expected") {
       scenario(s"Response status 400 when user submits a malformed xml payload to $messageTypeDesc") {
         Given("the API is available")
-        setupBackendServiceToReturn(externalServiceContext, OK)
+        setupPublicNotificationServiceToReturn(OK)
         val request = MalformedXmlRequest.copyFakeRequest(method = POST, uri = endpoint)
 
         When("a POST request with data is sent to the API")
@@ -97,7 +97,7 @@ class CustomsDitLicencesUnhappyPathSpec extends AcceptanceTestSpec {
 
     scenario(s"Response status 400 when user submits a non-xml payload for $messageTypeDesc") {
       Given("the API is available")
-      setupBackendServiceToReturn(externalServiceContext, OK)
+      setupPublicNotificationServiceToReturn(OK)
       val request = ValidRequest
         .withJsonBody(JsObject(Seq("something" -> JsString("I am a json"))))
         .copyFakeRequest(method = POST, uri = endpoint)
@@ -118,7 +118,7 @@ class CustomsDitLicencesUnhappyPathSpec extends AcceptanceTestSpec {
 
     scenario(s"Response status 400 when user submits a request without an X-Correlation-ID header for $messageTypeDesc") {
       Given("the API is available")
-      setupBackendServiceToReturn(externalServiceContext, OK)
+      setupPublicNotificationServiceToReturn(OK)
       val request = InvalidRequestWithoutXCorrelationId.copyFakeRequest(method = POST, uri = endpoint)
 
       When("a POST request with data is sent to the API")
@@ -136,7 +136,7 @@ class CustomsDitLicencesUnhappyPathSpec extends AcceptanceTestSpec {
 
     scenario(s"Response status 406 when user submits a request without an Accept header for $messageTypeDesc") {
       Given("the API is available")
-      setupBackendServiceToReturn(externalServiceContext, OK)
+      setupPublicNotificationServiceToReturn(OK)
       val request = ValidRequest.copyFakeRequest(headers = ValidRequest.headers.remove(ACCEPT)).copyFakeRequest(method = POST, uri = endpoint)
 
       When("a POST request with data is sent to the API")
@@ -152,9 +152,9 @@ class CustomsDitLicencesUnhappyPathSpec extends AcceptanceTestSpec {
       string2xml(contentAsString(resultFuture)) shouldBe string2xml(InvalidAcceptHeaderError)
     }
 
-    scenario(s"Response status 500 when user submits a valid request but DIT-LITE fails with 500 for $messageTypeDesc") {
+    scenario(s"Response status 500 when user submits a valid request but public notification gateway fails with 500 for $messageTypeDesc") {
       Given("the API is available")
-      setupBackendServiceToReturn(externalServiceContext, INTERNAL_SERVER_ERROR)
+      setupPublicNotificationServiceToReturn(INTERNAL_SERVER_ERROR)
       val request: FakeRequest[AnyContentAsXml] = ValidRequest.copyFakeRequest(method = "POST", uri = endpoint)
 
       When("a POST request with data is sent to the API")
@@ -167,8 +167,8 @@ class CustomsDitLicencesUnhappyPathSpec extends AcceptanceTestSpec {
       status(resultFuture) shouldBe INTERNAL_SERVER_ERROR
       headers(resultFuture).get(XCorrelationIdHeaderName) shouldBe 'defined
 
-      And("the response body is the xml supplied by DIT-LITE")
-      string2xml(contentAsString(resultFuture)) shouldBe string2xml("<some>xml</some>")
+      And("the response body is the standard customs xml for Internal Error")
+      string2xml(contentAsString(resultFuture)) shouldBe string2xml("<errorResponse><code>INTERNAL_SERVER_ERROR</code><message>Internal server error</message></errorResponse>")
     }
   }
 }

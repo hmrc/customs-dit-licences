@@ -65,17 +65,17 @@ class PublicNotificationServiceConnectorSpec extends IntegrationTestSpec with Gu
     "make a correct request" in {
       setupPublicNotificationServiceToReturn(OK)
 
-      val response: PublicNotificationResponse = await(connector.send(publicNotificationRequest))
+      val response: PublicNotificationResponse = await(connector.send(publicNotificationEntryUsageRequest))
 
       response.status shouldBe OK
-      verifyPublicNotificationServiceWasCalledWith(publicNotificationRequest)
+      verifyPublicNotificationServiceWasCalledWith(publicNotificationEntryUsageRequest)
       response shouldBe publicNotificationResponse
     }
 
     "return a failed future with wrapped HttpVerb NotFoundException when external service returns 404" in {
       setupPublicNotificationServiceToReturn(NOT_FOUND)
 
-      val caught = intercept[RuntimeException](await(connector.send(publicNotificationRequest)))
+      val caught = intercept[RuntimeException](await(connector.send(publicNotificationEntryUsageRequest)))
 
       caught.getCause.getClass shouldBe classOf[NotFoundException]
     }
@@ -83,7 +83,7 @@ class PublicNotificationServiceConnectorSpec extends IntegrationTestSpec with Gu
     "return a failed future with wrapped HttpVerbs BadRequestException when external service returns 400" in {
       setupPublicNotificationServiceToReturn(BAD_REQUEST)
 
-      val caught = intercept[RuntimeException](await(connector.send(publicNotificationRequest)))
+      val caught = intercept[RuntimeException](await(connector.send(publicNotificationEntryUsageRequest)))
 
       caught.getCause.getClass shouldBe classOf[BadRequestException]
     }
@@ -91,12 +91,12 @@ class PublicNotificationServiceConnectorSpec extends IntegrationTestSpec with Gu
     "return a failed future with Upstream5xxResponse when external service returns 500" in {
       setupPublicNotificationServiceToReturn(INTERNAL_SERVER_ERROR)
 
-      intercept[Upstream5xxResponse](await(connector.send(publicNotificationRequest)))
+      intercept[Upstream5xxResponse](await(connector.send(publicNotificationEntryUsageRequest)))
     }
 
     "return a failed future with wrapped HttpVerbs BadRequestException when it fails to connect the external service" in
       withoutWireMockServer {
-        val caught = intercept[RuntimeException](await(connector.send(publicNotificationRequest)))
+        val caught = intercept[RuntimeException](await(connector.send(publicNotificationEntryUsageRequest)))
 
         caught.getCause.getClass shouldBe classOf[BadGatewayException]
       }

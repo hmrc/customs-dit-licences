@@ -26,7 +26,7 @@ import play.api.test.Helpers.CONTENT_TYPE
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{ErrorAcceptHeaderInvalid, ErrorContentTypeHeaderInvalid}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.dit.licence.controllers.HeaderValidator
-import uk.gov.hmrc.customs.dit.licence.services.ConfigService
+import uk.gov.hmrc.customs.dit.licence.services.LicenceConfigService
 import uk.gov.hmrc.play.test.UnitSpec
 import util.RequestHeaders._
 import util.TestData.{ErrorUnauthorizedBasicToken, ErrorXCorrelationIdMissingOrInvalid, TestRequestData}
@@ -36,7 +36,7 @@ class HeaderValidatorSpec extends UnitSpec with TableDrivenPropertyChecks with M
   trait Setup {
     val mockLogger = mock[CdsLogger]
     implicit val request = mock[Request[AnyContent]]
-    val mockConfigService = mock[ConfigService]
+    val mockConfigService = mock[LicenceConfigService]
     val validator = new HeaderValidator (mockConfigService, mockLogger)
 
     when(mockConfigService.basicAuthTokenInternal).thenReturn(AuthHeaderTokenInternal)

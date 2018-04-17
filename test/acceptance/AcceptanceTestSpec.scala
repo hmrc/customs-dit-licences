@@ -17,13 +17,16 @@
 package acceptance
 
 import org.scalatest._
+import org.scalatest.concurrent.Eventually
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import util.TestData.conf
-import util.externalservices.DitLiteService
+import util.TestData._
+import util.externalservices.PublicNotificationService
 
+import scala.concurrent.duration._
+import scala.language.postfixOps
 import scala.util.control.NonFatal
 import scala.xml.{Node, Utility, XML}
 
@@ -34,8 +37,11 @@ trait AcceptanceTestSpec extends FeatureSpec
     with BeforeAndAfterEach
     with Matchers
     with OptionValues
-    with DitLiteService
-    with TableDrivenPropertyChecks {
+    with PublicNotificationService
+    with TableDrivenPropertyChecks
+    with Eventually {
+
+  override implicit val patienceConfig = PatienceConfig(timeout = 5 seconds)
 
   override implicit lazy val app: Application = new GuiceApplicationBuilder().configure(conf).build()
 

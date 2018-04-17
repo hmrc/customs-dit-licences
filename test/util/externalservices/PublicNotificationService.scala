@@ -17,6 +17,7 @@
 package util.externalservices
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.verification.LoggedRequest
 import play.api.http.{HeaderNames, MimeTypes}
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers._
@@ -53,4 +54,7 @@ trait PublicNotificationService extends WireMockRunner {
 
   }
 
+  def getTheCallMadeToPublicNotificationGateway :  LoggedRequest = {
+    wireMockServer.findAll(postRequestedFor(urlMatchingRequestPath)).get(0)
+  }
 }

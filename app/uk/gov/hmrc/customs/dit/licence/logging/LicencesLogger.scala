@@ -29,4 +29,5 @@ class LicencesLogger @Inject()(logger: CdsLogger) {
   def debug(msg: => String)(implicit validatedRequest: ValidatedRequest[AnyContent]): Unit = logger.debug(formatLog(msg, validatedRequest))
   def info(msg: => String)(implicit validatedRequest: ValidatedRequest[AnyContent]): Unit = logger.info(formatLog(msg, validatedRequest))
   def error(msg: => String)(implicit validatedRequest: ValidatedRequest[AnyContent]): Unit = logger.error(formatLog(msg, validatedRequest))
+  def error(msg: => String, e: => Throwable)(implicit validatedRequest: ValidatedRequest[AnyContent]): Unit = logger.error(formatLog(msg, validatedRequest), e)
 }

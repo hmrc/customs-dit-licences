@@ -16,38 +16,60 @@
 
 package uk.gov.hmrc.customs.dit.licence.controllers
 
-import akka.util.ByteString
 import javax.inject.{Inject, Singleton}
-import play.api.http.HttpEntity.Strict
+
 import play.api.http.MimeTypes
 import play.api.mvc._
+import uk.gov.hmrc.customs.api.common.config.ServiceConfigProvider
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
-import uk.gov.hmrc.customs.dit.licence.connectors.DitLiteConnector
+import uk.gov.hmrc.customs.dit.licence.connectors.PublicNotificationServiceConnector
 import uk.gov.hmrc.customs.dit.licence.controllers.CustomHeaderNames.X_CORRELATION_ID_HEADER_NAME
 import uk.gov.hmrc.customs.dit.licence.domain.{ConfigKey, EntryUsage, LateUsage}
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
-import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}
-import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.customs.dit.licence.model.{PublicNotificationRequest, PublicNotificationRequestHeader, RequestData, ValidatedRequest}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
-abstract class UsageController @Inject() (validateAndExtractHeadersAction: ValidateAndExtractHeadersAction,
-                                          ditLiteConnector: DitLiteConnector,
-                                          logger: LicencesLogger,
-                                          configKey: ConfigKey) extends BaseController {
+abstract class UsageController @Inject()(validateAndExtractHeadersAction: ValidateAndExtractHeadersAction,
+                                         connector: PublicNotificationServiceConnector,
+                                         serviceConfigProvider: ServiceConfigProvider,
+                                         logger: LicencesLogger,
+                                         configKey: ConfigKey) extends BaseController {
+
+  // cache config values for performance
+  lazy val entryUsageUrlAndBasicToken: UrlAndBasicToken = urlAndBasicToken(EntryUsage)
+  lazy val lateEntryUrlAndBasicToken: UrlAndBasicToken = urlAndBasicToken(LateUsage)
+
+  private def urlAndBasicToken = configKey match {
+    case EntryUsage => entryUsageUrlAndBasicToken
+    case LateUsage => lateEntryUrlAndBasicToken
+  }
+
+  case class UrlAndBasicToken(url: String, basicToken: String)
 
   def process(): Action[AnyContent] = (Action andThen validateAndExtractHeadersAction).async(bodyParser = xmlOrEmptyBody) {
     implicit validatedRequest: ValidatedRequest[AnyContent] =>
 
       logger.info(s"processing ${getClass.getSimpleName} request after validating headers")
       validatedRequest.request.body.asXml match {
-        case Some(_) =>
-          ditLiteConnector.post(configKey).map { response =>
-            val headers = extractHeaders(response) + correlationIdHeader(validatedRequest.requestData)
-            logger.debug(s"sending the DIT-LITE response to backend with status ${response.status} and\nresponse headers=$headers \nresponse payload=${response.body}")
-            Result(ResponseHeader(response.status, headers), Strict(ByteString(response.body), Some(s"${MimeTypes.XML}; charset=UTF-8")))
+        case Some(xml) =>
+          val publicNotificationRequest = PublicNotificationRequest(
+            urlAndBasicToken.url,
+            getMandatoryHeaders(validatedRequest.requestData, urlAndBasicToken.basicToken),
+            xml.toString
+          )
+          connector.send(publicNotificationRequest).map { pnr =>
+            logger.debug(s"sending the request to the public notification gateway with status ${pnr.status} and\nheaders=${pnr.headers} \npnr payload=${pnr.xmlPayload.toString}")
+            val headers: Seq[(String, String)] = pnr.headers.map(h => (h.name, h.value))
+            Results.Status(pnr.status)(pnr.xmlPayload).withHeaders(headers: _*).as(s"${MimeTypes.XML}; charset=UTF-8")
+          }
+          .recover{
+            case NonFatal(e) =>
+              logger.error("error sending the request to the public notification gateway", e)
+              ErrorResponse.ErrorInternalServerError.XmlResult.withHeaders(correlationIdHeader(validatedRequest.requestData))
           }
 
         case _ =>
@@ -66,18 +88,30 @@ abstract class UsageController @Inject() (validateAndExtractHeadersAction: Valid
     X_CORRELATION_ID_HEADER_NAME -> requestData.correlationId
   }
 
-  private def extractHeaders(response: HttpResponse): Map[String, String] = {
-    response.allHeaders.map(h => (h._1, h._2.head))
+  private def urlAndBasicToken(configKey: ConfigKey) = {
+    UrlAndBasicToken(
+      serviceConfigProvider.getConfig(configKey.name).url,
+      serviceConfigProvider.getConfig(configKey.name).bearerToken.getOrElse(throw new IllegalStateException(s"no basic token was found in config for ${configKey.name}"))
+    )
+  }
+
+  private def getMandatoryHeaders(requestData: RequestData, basicToken: String): Seq[PublicNotificationRequestHeader] = {
+    Seq(
+      PublicNotificationRequestHeader(ACCEPT, MimeTypes.XML),
+      PublicNotificationRequestHeader(CONTENT_TYPE, s"${MimeTypes.XML}; charset=UTF-8"),
+      PublicNotificationRequestHeader("X-Correlation-ID", requestData.correlationId),
+      PublicNotificationRequestHeader(AUTHORIZATION, basicToken)
+    )
   }
 
 }
 
-
 @Singleton
-class EntryUsageController @Inject() (validateAndExtractHeadersAction: ValidateAndExtractHeadersAction,
-                                      ditLiteConnector: DitLiteConnector,
-                                      logger: LicencesLogger)
-  extends UsageController(validateAndExtractHeadersAction, ditLiteConnector, logger, EntryUsage) {
+class EntryUsageController @Inject()(validateAndExtractHeadersAction: ValidateAndExtractHeadersAction,
+                                     connector: PublicNotificationServiceConnector,
+                                     serviceConfigProvider: ServiceConfigProvider,
+                                     logger: LicencesLogger)
+  extends UsageController(validateAndExtractHeadersAction, connector, serviceConfigProvider, logger, EntryUsage) {
 
   def post(): Action[AnyContent] = {
     super.process()
@@ -85,13 +119,13 @@ class EntryUsageController @Inject() (validateAndExtractHeadersAction: ValidateA
 }
 
 @Singleton
-class LateUsageController @Inject() (validateAndExtractHeadersAction: ValidateAndExtractHeadersAction,
-                                      ditLiteConnector: DitLiteConnector,
-                                      logger: LicencesLogger)
-  extends UsageController(validateAndExtractHeadersAction, ditLiteConnector, logger, LateUsage) {
+class LateUsageController @Inject()(validateAndExtractHeadersAction: ValidateAndExtractHeadersAction,
+                                    connector: PublicNotificationServiceConnector,
+                                    serviceConfigProvider: ServiceConfigProvider,
+                                    logger: LicencesLogger)
+  extends UsageController(validateAndExtractHeadersAction, connector, serviceConfigProvider, logger, LateUsage) {
 
   def post(): Action[AnyContent] = {
     super.process()
   }
 }
-

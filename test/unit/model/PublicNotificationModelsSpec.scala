@@ -41,16 +41,16 @@ class PublicNotificationModelsSpec extends UnitSpec {
 
   "Request model" should {
     "marshal to Json" in {
-      val jsValue = Json.toJson(publicNotificationRequest)
+      val jsValue = Json.toJson(publicNotificationEntryUsageRequest)
       val json = Json.prettyPrint(jsValue)
 
-      json shouldBe publicNotificationRequestAsJson
+      json shouldBe publicNotificationEntryUsageRequestAsJson
     }
 
     "un-marshal to model" in {
-      val jsValue = Json.parse(publicNotificationRequestAsJson)
+      val jsValue = Json.parse(publicNotificationEntryUsageRequestAsJson)
 
-      jsValue.as[PublicNotificationRequest] shouldBe publicNotificationRequest
+      jsValue.as[PublicNotificationRequest] shouldBe publicNotificationEntryUsageRequest
     }
   }
 

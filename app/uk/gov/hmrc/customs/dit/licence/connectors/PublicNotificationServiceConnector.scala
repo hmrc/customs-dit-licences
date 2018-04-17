@@ -21,11 +21,11 @@ import javax.inject.Singleton
 import com.google.inject.Inject
 import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE}
 import play.api.http.MimeTypes
+import play.api.libs.json.Json
 import play.api.mvc.AnyContent
-import uk.gov.hmrc.customs.api.common.config.ServiceConfigProvider
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
 import uk.gov.hmrc.customs.dit.licence.model.{PublicNotificationRequest, PublicNotificationResponse, ValidatedRequest}
-import uk.gov.hmrc.customs.dit.licence.services.WSHttp
+import uk.gov.hmrc.customs.dit.licence.services.{LicenceConfigService, WSHttp}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
 import uk.gov.hmrc.play.config.inject.AppName
 
@@ -36,18 +36,19 @@ import scala.concurrent.Future
 class PublicNotificationServiceConnector @Inject()(httpPost: WSHttp,
                                                    appName: AppName,
                                                    logger: LicencesLogger,
-                                                   serviceConfigProvider: ServiceConfigProvider) {
+                                                   config: LicenceConfigService) {
 
   private val outboundHeaders = Seq(
     (ACCEPT, MimeTypes.JSON),
     (CONTENT_TYPE, MimeTypes.JSON))
 
   def send(publicNotificationRequest: PublicNotificationRequest)(implicit validatedRequest: ValidatedRequest[AnyContent]): Future[PublicNotificationResponse] = {
-    val url = serviceConfigProvider.getConfig("public-notification").url
 
     implicit val hc: HeaderCarrier = HeaderCarrier(extraHeaders = outboundHeaders)
     val msg = "Calling public notification service"
-    logger.debug(s"$msg at $url with\nheaders=[${hc.headers}] and\npayload=$publicNotificationRequest") //TODO: json pretty print
+    val url = config.publicNotificationUrl
+    val payloadAsJsonString = Json.prettyPrint(Json.toJson(publicNotificationRequest))
+    logger.debug(s"$msg at $url with\nheaders=[${hc.headers}] and\npayload=$payloadAsJsonString publicNotificationRequest")
 
     val postFuture = httpPost
       .POST[PublicNotificationRequest, PublicNotificationResponse](url, publicNotificationRequest)
@@ -56,7 +57,7 @@ class PublicNotificationServiceConnector @Inject()(httpPost: WSHttp,
       }
       .recoverWith {
         case e: Throwable =>
-          logger.error(s"Call to public notification service failed. POST url=$url")
+          logger.error(s"Call to public notification service failed. POST url=$url", e)
           Future.failed(e)
       }
     postFuture
