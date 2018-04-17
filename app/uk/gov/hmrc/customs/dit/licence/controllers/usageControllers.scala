@@ -39,16 +39,15 @@ abstract class UsageController @Inject()(validateAndExtractHeadersAction: Valida
                                          logger: LicencesLogger,
                                          configKey: ConfigKey) extends BaseController {
 
-  // cache config values for performance
-  lazy val entryUsageUrlAndBasicToken: UrlAndBasicToken = urlAndBasicToken(EntryUsage)
-  lazy val lateEntryUrlAndBasicToken: UrlAndBasicToken = urlAndBasicToken(LateUsage)
+  private lazy val entryUsageUrlAndBasicToken: UrlAndBasicToken = urlAndBasicToken(EntryUsage)
+  private lazy val lateEntryUrlAndBasicToken: UrlAndBasicToken = urlAndBasicToken(LateUsage)
 
   private def urlAndBasicToken = configKey match {
     case EntryUsage => entryUsageUrlAndBasicToken
     case LateUsage => lateEntryUrlAndBasicToken
   }
 
-  case class UrlAndBasicToken(url: String, basicToken: String)
+  private case class UrlAndBasicToken(url: String, basicToken: String)
 
   def process(): Action[AnyContent] = (Action andThen validateAndExtractHeadersAction).async(bodyParser = xmlOrEmptyBody) {
     implicit validatedRequest: ValidatedRequest[AnyContent] =>

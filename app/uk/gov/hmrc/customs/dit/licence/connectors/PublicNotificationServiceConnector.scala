@@ -48,7 +48,7 @@ class PublicNotificationServiceConnector @Inject()(httpPost: WSHttp,
     val msg = "Calling public notification service"
     val url = config.publicNotificationUrl
     val payloadAsJsonString = Json.prettyPrint(Json.toJson(publicNotificationRequest))
-    logger.debug(s"$msg at $url with\nheaders=[${hc.headers}] and\npayload=$payloadAsJsonString publicNotificationRequest")
+    logger.debug(s"$msg at $url with\nheaders=${hc.headers} and\npayload=$payloadAsJsonString publicNotificationRequest")
 
     val postFuture = httpPost
       .POST[PublicNotificationRequest, PublicNotificationResponse](url, publicNotificationRequest)
