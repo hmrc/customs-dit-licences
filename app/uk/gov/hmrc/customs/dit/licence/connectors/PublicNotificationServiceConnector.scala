@@ -16,25 +16,23 @@
 
 package uk.gov.hmrc.customs.dit.licence.connectors
 
-import javax.inject.Singleton
-
 import com.google.inject.Inject
+import javax.inject.Singleton
 import play.api.http.HeaderNames.{ACCEPT, CONTENT_TYPE}
 import play.api.http.MimeTypes
 import play.api.libs.json.Json
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
 import uk.gov.hmrc.customs.dit.licence.model.{PublicNotificationRequest, PublicNotificationResponse, ValidatedRequest}
-import uk.gov.hmrc.customs.dit.licence.services.{LicenceConfigService, WSHttp}
+import uk.gov.hmrc.customs.dit.licence.services.LicenceConfigService
 import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
-import uk.gov.hmrc.play.config.inject.AppName
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class PublicNotificationServiceConnector @Inject()(httpPost: WSHttp,
-                                                   appName: AppName,
+class PublicNotificationServiceConnector @Inject()(http: HttpClient,
                                                    logger: LicencesLogger,
                                                    config: LicenceConfigService) {
 
@@ -50,7 +48,7 @@ class PublicNotificationServiceConnector @Inject()(httpPost: WSHttp,
     val payloadAsJsonString = Json.prettyPrint(Json.toJson(publicNotificationRequest))
     logger.debug(s"$msg at $url with\nheaders=${hc.headers} and\npayload=$payloadAsJsonString publicNotificationRequest")
 
-    val postFuture = httpPost
+    val postFuture = http
       .POST[PublicNotificationRequest, PublicNotificationResponse](url, publicNotificationRequest)
       .recoverWith {
         case httpError: HttpException => Future.failed(new RuntimeException(httpError))

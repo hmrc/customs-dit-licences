@@ -22,7 +22,7 @@ import play.api.{Configuration, Environment}
 import uk.gov.hmrc.customs.api.common.config.ConfigValidationNelAdaptor
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.dit.licence.services.LicenceConfigService
-import uk.gov.hmrc.play.config.inject.ServicesConfig
+import uk.gov.hmrc.customs.api.common.config.ServicesConfig
 import uk.gov.hmrc.play.test.UnitSpec
 
 class ConfigServiceSpec extends UnitSpec with MockitoSugar {
@@ -72,11 +72,8 @@ class ConfigServiceSpec extends UnitSpec with MockitoSugar {
     }
   }
 
-  private def testServicesConfig(configuration: Configuration): ServicesConfig = new ServicesConfig {
-    override val runModeConfiguration = configuration
+  private def testServicesConfig(configuration: Configuration) = new ServicesConfig(configuration, mock[Environment]) {
     override val mode = play.api.Mode.Test
-
-    override def environment: Environment = mock[Environment]
   }
 
 }
