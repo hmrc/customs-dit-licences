@@ -99,7 +99,7 @@ abstract class UsageController @Inject()(validateAndExtractHeadersAction: Valida
       PublicNotificationRequestHeader(ACCEPT, MimeTypes.XML),
       PublicNotificationRequestHeader(CONTENT_TYPE, s"${MimeTypes.XML}; charset=UTF-8"),
       PublicNotificationRequestHeader("X-Correlation-ID", requestData.correlationId),
-      PublicNotificationRequestHeader(AUTHORIZATION, basicToken)
+      PublicNotificationRequestHeader(AUTHORIZATION, "Basic " + basicToken)
     )
   }
 

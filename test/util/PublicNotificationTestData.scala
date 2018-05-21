@@ -76,7 +76,7 @@ object PublicNotificationTestData {
     PublicNotificationRequestHeader(ACCEPT, XML),
     PublicNotificationRequestHeader(CONTENT_TYPE, s"$XML; charset=UTF-8"),
     PublicNotificationRequestHeader("X-Correlation-ID", TestData.CorrelationId),
-    PublicNotificationRequestHeader(AUTHORIZATION, ExternalServicesConfig.AuthToken)
+    PublicNotificationRequestHeader(AUTHORIZATION, "Basic " + ExternalServicesConfig.AuthToken)
   )
 
 
