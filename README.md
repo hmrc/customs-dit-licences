@@ -1,7 +1,5 @@
 # customs-dit-licences
 
- [ ![Download](https://api.bintray.com/packages/hmrc/releases/customs-dit-licences/images/download.svg) ](https://bintray.com/hmrc/releases/customs-dit-licences/_latestVersion)
-
 This service receives licence usage data from the backend system and passes it on to DIT-LITE. It accepts an XML payload but does not verify it.
 If the XML is malformed then a Bad Request error is raised. The response received from the DIT-LITE service, error or otherwise, is returned unmodified to the backend system.
 The request/response sequence from the backend to this service to DIT-LITE is synchronous.
