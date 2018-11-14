@@ -17,14 +17,11 @@
 package uk.gov.hmrc.customs.dit.licence.services
 
 import javax.inject.{Inject, Singleton}
-
-import uk.gov.hmrc.customs.api.common.config.ConfigValidationNelAdaptor
+import uk.gov.hmrc.customs.api.common.config.{ConfigValidatedNelAdaptor, CustomsValidatedNel}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.dit.licence.domain.CustomsDitLicencesConfig
 
-import scalaz.ValidationNel
-import scalaz.syntax.apply._
-import scalaz.syntax.traverse._
+import cats.implicits._
 
 /**
   * Responsible for reading the HMRC style Play2 configuration file, error handling, and de-serialising config into
@@ -34,19 +31,19 @@ import scalaz.syntax.traverse._
   * application. If startup completes without any exceptions being thrown then dependent classes can be sure that
   * config has been loaded correctly.
   *
-  * @param configValidationNel adaptor for config services that returns a `ValidationNel`
+  * @param configValidatedNel adaptor for config services that returns a `ValidatedNel`
   */
 @Singleton
-class LicenceConfigService @Inject()(configValidationNel: ConfigValidationNelAdaptor, logger: CdsLogger) extends CustomsDitLicencesConfig {
+class LicenceConfigService @Inject()(configValidatedNel: ConfigValidatedNelAdaptor, logger: CdsLogger) extends CustomsDitLicencesConfig {
 
   private case class CustomsDitLicencesConfigImpl(basicAuthTokenInternal: String, publicNotificationUrl: String) extends CustomsDitLicencesConfig
 
   private val config: CustomsDitLicencesConfig = {
 
-    val validatedConfig: ValidationNel[String, CustomsDitLicencesConfig] = (
-      configValidationNel.root.string("auth.token.internal") |@|
-      configValidationNel.service("public-notification").serviceUrl
-      )(CustomsDitLicencesConfigImpl.apply)
+    val validatedConfig: CustomsValidatedNel[CustomsDitLicencesConfig] = (
+        configValidatedNel.root.string("auth.token.internal"),
+        configValidatedNel.service("public-notification").serviceUrl
+      ) mapN CustomsDitLicencesConfigImpl
 
     /*
      * the fold below is also similar to how we handle the error/success cases for Play2 forms - again the underlying

@@ -18,11 +18,10 @@ package unit.services
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.mockito.MockitoSugar
-import play.api.{Configuration, Environment}
-import uk.gov.hmrc.customs.api.common.config.ConfigValidationNelAdaptor
+import play.api.{Configuration, Environment, Mode}
+import uk.gov.hmrc.customs.api.common.config.{ConfigValidatedNelAdaptor, ServicesConfig}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.dit.licence.services.LicenceConfigService
-import uk.gov.hmrc.customs.api.common.config.ServicesConfig
 import uk.gov.hmrc.play.test.UnitSpec
 
 class ConfigServiceSpec extends UnitSpec with MockitoSugar {
@@ -50,7 +49,7 @@ class ConfigServiceSpec extends UnitSpec with MockitoSugar {
   private val mockCdsLogger = mock[CdsLogger]
 
   private def customsConfigService(configuration: Configuration): LicenceConfigService =
-    new LicenceConfigService(new ConfigValidationNelAdaptor(testServicesConfig(configuration), configuration), mockCdsLogger)
+    new LicenceConfigService(new ConfigValidatedNelAdaptor(testServicesConfig(configuration), configuration), mockCdsLogger)
 
   "CustomsConfigService" should {
     "return config as object model when configuration is valid" in {
@@ -73,7 +72,7 @@ class ConfigServiceSpec extends UnitSpec with MockitoSugar {
   }
 
   private def testServicesConfig(configuration: Configuration) = new ServicesConfig(configuration, mock[Environment]) {
-    override val mode = play.api.Mode.Test
+    override val mode: Mode.Value = play.api.Mode.Test
   }
 
 }
