@@ -8,7 +8,7 @@ object AppDependencies {
   val mockitoVersion = "2.10.0"
   val pegdownVersion = "1.6.0"
   val wireMockVersion = "2.18.0"
-  val customsApiCommonVersion = "1.32.0"
+  val customsApiCommonVersion = "1.31.0"
   val testScope = "test,it"
 
   val hmrcTest = "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % testScope
