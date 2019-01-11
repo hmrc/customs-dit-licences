@@ -23,21 +23,22 @@ import play.api.http.HeaderNames
 import play.api.http.HeaderNames._
 import play.api.mvc.{AnyContent, Headers, Request}
 import play.api.test.Helpers.CONTENT_TYPE
+import uk.gov.hmrc.customs.api.common.config.ServicesConfig
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{ErrorAcceptHeaderInvalid, ErrorContentTypeHeaderInvalid}
-import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.dit.licence.controllers.HeaderValidator
 import uk.gov.hmrc.customs.dit.licence.services.LicenceConfigService
 import uk.gov.hmrc.play.test.UnitSpec
 import util.RequestHeaders._
+import util.StubCdsLogger
 import util.TestData.{ErrorUnauthorizedBasicToken, ErrorXCorrelationIdMissingOrInvalid, TestRequestData}
 
 class HeaderValidatorSpec extends UnitSpec with TableDrivenPropertyChecks with MockitoSugar {
 
   trait Setup {
-    val mockLogger = mock[CdsLogger]
+    val cdsLogger = new StubCdsLogger(mock[ServicesConfig])
     implicit val request = mock[Request[AnyContent]]
     val mockConfigService = mock[LicenceConfigService]
-    val validator = new HeaderValidator (mockConfigService, mockLogger)
+    val validator = new HeaderValidator (mockConfigService, cdsLogger)
 
     when(mockConfigService.basicAuthTokenInternal).thenReturn(AuthHeaderTokenInternal)
   }

@@ -106,7 +106,7 @@ lazy val scoverageSettings: Seq[Setting[_]] = Seq(
     "Reverse.*",
     "uk\\.gov\\.hmrc\\.customs\\.dit\\.licence\\.services\\.ConfigService",
     ".*(BuildInfo|Routes).*").mkString(";"),
-  coverageMinimum := 97,
+  coverageMinimum := 98,
   coverageFailOnMinimum := false,
   coverageHighlighting := true,
   parallelExecution in Test := false
@@ -116,8 +116,7 @@ scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 
 val compileDependencies = Seq(customsApiCommon)
 
-val testDependencies = Seq(hmrcTest, scalaTest, pegDown,
-  scalaTestPlusPlay, wireMock, mockito, customsApiCommonTests)
+val testDependencies = Seq(hmrcTest, scalaTest, scalaTestPlusPlay, wireMock, mockito, customsApiCommonTests)
 
 libraryDependencies ++= compileDependencies ++ testDependencies
 
