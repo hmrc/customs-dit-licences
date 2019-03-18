@@ -28,13 +28,12 @@ import uk.gov.hmrc.customs.dit.licence.services.LicenceConfigService
 import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class PublicNotificationServiceConnector @Inject()(http: HttpClient,
                                                    logger: LicencesLogger,
-                                                   config: LicenceConfigService) {
+                                                   config: LicenceConfigService)(implicit ec: ExecutionContext) {
 
   private val outboundHeaders = Seq(
     (ACCEPT, MimeTypes.JSON),
