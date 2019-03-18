@@ -17,7 +17,7 @@
 package unit.logging
 
 import org.mockito.Mockito.when
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.customs.dit.licence.logging.LoggingHelper
 import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}

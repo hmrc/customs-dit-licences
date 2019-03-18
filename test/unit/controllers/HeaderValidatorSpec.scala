@@ -17,7 +17,7 @@
 package unit.controllers
 
 import org.mockito.Mockito.when
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.http.HeaderNames
 import play.api.http.HeaderNames._

@@ -18,7 +18,7 @@ package unit.controllers
 
 import org.mockito.Mockito._
 import org.scalatest.Matchers
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.Result
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
