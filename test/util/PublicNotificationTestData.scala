@@ -33,10 +33,8 @@ object PublicNotificationTestData {
 
   lazy val ValidEntryUsageRequest = FakeRequest()
     .withHeaders(RequestHeaders.ValidHeaders.toSeq: _*)
-    .copyFakeRequest(method = "POST", uri = "/send-entry-usage")
   lazy val ValidLateUsageRequest = FakeRequest()
     .withHeaders(RequestHeaders.ValidHeaders.toSeq: _*)
-    .copyFakeRequest(method = "POST", uri = "/send-late-usage")
 
   val RequestHeader1 = PublicNotificationRequestHeader("header1", "value1")
   val RequestHeader2 = PublicNotificationRequestHeader("header2", "value2")
@@ -85,7 +83,7 @@ object PublicNotificationTestData {
     PublicNotificationResponseHeader("response2", "response2Value")
   )
 
-  val publicNotificationResponse = PublicNotificationResponse(Default.OK, responseHeaders, "<response>BAR</response>")
+  val publicNotificationResponse = PublicNotificationResponse(new Default().OK, responseHeaders, "<response>BAR</response>")
   val publicNotificationResponseAsJson =
     """{
       |  "status" : 200,

@@ -17,6 +17,7 @@
 package acceptance
 
 import play.api.libs.json.{JsObject, JsString}
+import play.api.mvc.request.RequestTarget
 import play.api.mvc.{AnyContentAsXml, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -71,14 +72,16 @@ class CustomsDitLicencesUnhappyPathSpec extends AcceptanceTestSpec {
     ("Entry Usage", entryUsageEndpoint, DitLiteEntryUsageServiceContext),
     ("Late Usage", lateUsageEndpoint, DitLiteLateUsageServiceContext)
   )
-
-  forAll(controllers) { case (messageTypeDesc, endpoint, externalServiceContext) =>
+  
+  forAll (controllers) { case (messageTypeDesc, endpoint, externalServiceContext) =>
     feature(s"The $messageTypeDesc API handles errors as expected") {
       scenario(s"Response status 400 when user submits a malformed xml payload to $messageTypeDesc") {
         Given("the API is available")
         setupPublicNotificationServiceToReturn(OK)
-        val request = MalformedXmlRequest.copyFakeRequest(method = POST, uri = endpoint)
-
+        val request = MalformedXmlRequest
+          .withMethod("POST")
+          .withTarget(RequestTarget(MalformedXmlRequest.uri, endpoint, MalformedXmlRequest.queryString))
+        
         When("a POST request with data is sent to the API")
         val result: Option[Future[Result]] = route(app = app, request)
 
@@ -91,7 +94,6 @@ class CustomsDitLicencesUnhappyPathSpec extends AcceptanceTestSpec {
 
         And("the response body is a \"malformed xml body\" XML")
         string2xml(contentAsString(resultFuture)) shouldBe string2xml(MalformedXmlBodyError)
-
       }
     }
 
@@ -100,8 +102,9 @@ class CustomsDitLicencesUnhappyPathSpec extends AcceptanceTestSpec {
       setupPublicNotificationServiceToReturn(OK)
       val request = ValidRequest
         .withJsonBody(JsObject(Seq("something" -> JsString("I am a json"))))
-        .copyFakeRequest(method = POST, uri = endpoint)
-
+        .withMethod("POST")
+        .withTarget(RequestTarget(ValidRequest.uri, endpoint, ValidRequest.queryString))
+      
       When("a POST request with data is sent to the API")
       val result: Option[Future[Result]] = route(app = app, request)
 
@@ -119,7 +122,9 @@ class CustomsDitLicencesUnhappyPathSpec extends AcceptanceTestSpec {
     scenario(s"Response status 400 when user submits a request without an X-Correlation-ID header for $messageTypeDesc") {
       Given("the API is available")
       setupPublicNotificationServiceToReturn(OK)
-      val request = InvalidRequestWithoutXCorrelationId.copyFakeRequest(method = POST, uri = endpoint)
+      val request = InvalidRequestWithoutXCorrelationId
+        .withMethod("POST")
+        .withTarget(RequestTarget(InvalidRequestWithoutXCorrelationId.uri, endpoint, InvalidRequestWithoutXCorrelationId.queryString))
 
       When("a POST request with data is sent to the API")
       val result: Option[Future[Result]] = route(app = app, request)
@@ -137,7 +142,9 @@ class CustomsDitLicencesUnhappyPathSpec extends AcceptanceTestSpec {
     scenario(s"Response status 406 when user submits a request without an Accept header for $messageTypeDesc") {
       Given("the API is available")
       setupPublicNotificationServiceToReturn(OK)
-      val request = ValidRequest.copyFakeRequest(headers = ValidRequest.headers.remove(ACCEPT)).copyFakeRequest(method = POST, uri = endpoint)
+      val request = ValidRequest.withHeaders(ValidRequest.headers.remove(ACCEPT))
+        .withMethod("POST")
+        .withTarget(RequestTarget(ValidRequest.uri, endpoint, ValidRequest.queryString))
 
       When("a POST request with data is sent to the API")
       val result: Option[Future[Result]] = route(app = app, request)
@@ -155,8 +162,9 @@ class CustomsDitLicencesUnhappyPathSpec extends AcceptanceTestSpec {
     scenario(s"Response status 500 when user submits a valid request but public notification gateway fails with 500 for $messageTypeDesc") {
       Given("the API is available")
       setupPublicNotificationServiceToReturn(INTERNAL_SERVER_ERROR)
-      val request: FakeRequest[AnyContentAsXml] = ValidRequest.copyFakeRequest(method = "POST", uri = endpoint)
-
+      val request: FakeRequest[AnyContentAsXml] = ValidRequest.withMethod("POST")
+        .withTarget(RequestTarget(ValidRequest.uri, endpoint, ValidRequest.queryString))
+      
       When("a POST request with data is sent to the API")
       val result: Option[Future[Result]] = route(app = app, request)
 

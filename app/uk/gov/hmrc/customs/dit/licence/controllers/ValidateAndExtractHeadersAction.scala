@@ -17,13 +17,14 @@
 package uk.gov.hmrc.customs.dit.licence.controllers
 
 import javax.inject.Inject
-import play.api.mvc.{ActionRefiner, Request, Result}
+import play.api.mvc.{ActionRefiner, ControllerComponents, Request, Result}
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
 import uk.gov.hmrc.customs.dit.licence.model.ValidatedRequest
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class ValidateAndExtractHeadersAction @Inject()(validator: HeaderValidator,
+class ValidateAndExtractHeadersAction @Inject()(cc: ControllerComponents,
+                                                validator: HeaderValidator,
                                                 logger: LicencesLogger) extends ActionRefiner[Request, ValidatedRequest] {
 
   protected override def refine[A](inputRequest: Request[A]): Future[Either[Result, ValidatedRequest[A]]] = Future.successful {
@@ -36,4 +37,6 @@ class ValidateAndExtractHeadersAction @Inject()(validator: HeaderValidator,
         Left(errorResponse.XmlResult)
     }
   }
+
+  override protected def executionContext: ExecutionContext = cc.executionContext
 }
