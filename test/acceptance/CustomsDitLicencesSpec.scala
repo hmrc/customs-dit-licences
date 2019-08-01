@@ -41,8 +41,8 @@ class CustomsDitLicencesSpec extends AcceptanceTestSpec {
   }
 
   private val controllers = Table(("Message Type Description", "Request", "Request Payload", "External Service Context", "endpoint"),
-    ("Entry Usage", ValidEntryUsageRequest, ValidXML1, DitLiteEntryUsageServiceContext, "/send-entry-usage"),
-    ("Late Usage", ValidLateUsageRequest, ValidXML2, DitLiteLateUsageServiceContext, "/send-late-usage")
+    ("Entry Usage", ValidUsageRequest, ValidXML1, DitLiteEntryUsageServiceContext, "/send-entry-usage"),
+    ("Late Usage", ValidUsageRequest, ValidXML2, DitLiteLateUsageServiceContext, "/send-late-usage")
   )
 
 
@@ -56,7 +56,7 @@ class CustomsDitLicencesSpec extends AcceptanceTestSpec {
         When("a POST request with data is sent to the API")
         val result: Future[Result] = route(app = app, request
             .withMethod("POST")
-          .withTarget(RequestTarget(ValidEntryUsageRequest.uri, endpoint, ValidEntryUsageRequest.queryString))
+          .withTarget(RequestTarget(ValidUsageRequest.uri, endpoint, ValidUsageRequest.queryString))
           .withXmlBody(requestPayloadXml)).value
 
 

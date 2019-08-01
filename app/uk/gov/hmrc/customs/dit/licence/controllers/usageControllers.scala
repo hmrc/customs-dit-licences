@@ -36,7 +36,8 @@ abstract class UsageController @Inject()(cc: ControllerComponents,
                                          connector: PublicNotificationServiceConnector,
                                          serviceConfigProvider: ServiceConfigProvider,
                                          logger: LicencesLogger,
-                                         configKey: ConfigKey)(implicit ec: ExecutionContext) extends BackendController(cc) {
+                                         configKey: ConfigKey)
+                                         (implicit ec: ExecutionContext) extends BackendController(cc) {
 
   private lazy val entryUsageUrlAndBasicToken: UrlAndBasicToken = urlAndBasicToken(EntryUsage)
   private lazy val lateEntryUrlAndBasicToken: UrlAndBasicToken = urlAndBasicToken(LateUsage)
@@ -109,7 +110,8 @@ class EntryUsageController @Inject()(cc: ControllerComponents,
                                      validateAndExtractHeadersAction: ValidateAndExtractHeadersAction,
                                      connector: PublicNotificationServiceConnector,
                                      serviceConfigProvider: ServiceConfigProvider,
-                                     logger: LicencesLogger)(implicit ec: ExecutionContext)
+                                     logger: LicencesLogger)
+                                     (implicit ec: ExecutionContext)
   extends UsageController(cc ,validateAndExtractHeadersAction, connector, serviceConfigProvider, logger, EntryUsage) {
 
   def post(): Action[AnyContent] = {
@@ -122,7 +124,8 @@ class LateUsageController @Inject()(cc: ControllerComponents,
                                     validateAndExtractHeadersAction: ValidateAndExtractHeadersAction,
                                     connector: PublicNotificationServiceConnector,
                                     serviceConfigProvider: ServiceConfigProvider,
-                                    logger: LicencesLogger)(implicit ec: ExecutionContext)
+                                    logger: LicencesLogger)
+                                    (implicit ec: ExecutionContext)
   extends UsageController(cc, validateAndExtractHeadersAction, connector, serviceConfigProvider, logger, LateUsage) {
 
   def post(): Action[AnyContent] = {
