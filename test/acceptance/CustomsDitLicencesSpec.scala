@@ -18,6 +18,7 @@ package acceptance
 
 import play.api.libs.json.Json
 import play.api.mvc.Result
+import play.api.mvc.request.RequestTarget
 import play.api.test.Helpers._
 import uk.gov.hmrc.customs.dit.licence.model.PublicNotificationRequest
 import util.CustomsDitLiteExternalServicesConfig._
@@ -39,13 +40,13 @@ class CustomsDitLicencesSpec extends AcceptanceTestSpec {
     stopMockServer()
   }
 
-  private val controllers = Table(("Message Type Description", "Request", "Request Payload", "External Service Context"),
-    ("Entry Usage", ValidEntryUsageRequest, ValidXML1, DitLiteEntryUsageServiceContext),
-    ("Late Usage", ValidLateUsageRequest, ValidXML2, DitLiteLateUsageServiceContext)
+  private val controllers = Table(("Message Type Description", "Request", "Request Payload", "External Service Context", "endpoint"),
+    ("Entry Usage", ValidUsageRequest, ValidXML1, DitLiteEntryUsageServiceContext, "/send-entry-usage"),
+    ("Late Usage", ValidUsageRequest, ValidXML2, DitLiteLateUsageServiceContext, "/send-late-usage")
   )
 
 
-  forAll(controllers) { case (messageTypeDesc, request, requestPayloadXml, url) =>
+  forAll(controllers) { case (messageTypeDesc, request, requestPayloadXml, url, endpoint) =>
 
     feature(s"Backend submits $messageTypeDesc message") {
       scenario(s"Backend system successfully submits $messageTypeDesc") {
@@ -53,7 +54,11 @@ class CustomsDitLicencesSpec extends AcceptanceTestSpec {
         setupPublicNotificationServiceToReturn(OK)
 
         When("a POST request with data is sent to the API")
-        val result: Future[Result] = route(app = app, request.withXmlBody(requestPayloadXml)).value
+        val result: Future[Result] = route(app = app, request
+            .withMethod("POST")
+          .withTarget(RequestTarget(ValidUsageRequest.uri, endpoint, ValidUsageRequest.queryString))
+          .withXmlBody(requestPayloadXml)).value
+
 
         Then("propagate status returned from public notification gateway")
         status(result) shouldBe publicNotificationResponse.status

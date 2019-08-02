@@ -45,8 +45,10 @@ object TestData {
     .withHeaders(ValidHeaders.toSeq: _*)
     .withXmlBody(ValidXML)
 
-  lazy val InvalidRequestWithoutXCorrelationId: FakeRequest[AnyContentAsXml] =
-    ValidRequest.copyFakeRequest(headers = ValidRequest.headers.remove(XCorrelationIdHeaderName))
+  lazy val InvalidRequestWithoutXCorrelationId: FakeRequest[AnyContentAsXml] = FakeRequest()
+    .withHeaders(InvalidHeaders.toSeq: _*)
+    .withXmlBody(ValidXML)
+
 
   lazy val MalformedXmlRequest: FakeRequest[AnyContentAsText] = ValidRequest.withTextBody("<xml><non_well_formed><xml>")
 

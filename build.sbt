@@ -1,6 +1,4 @@
 import AppDependencies._
-import org.scalastyle.sbt.ScalastylePlugin._
-import play.sbt.routes.RoutesKeys._
 import sbt.Keys._
 import sbt.Tests.{Group, SubProcess}
 import sbt.{Resolver, _}
@@ -8,7 +6,7 @@ import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, defaultSettings, s
 import uk.gov.hmrc.PublishingSettings._
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 
-import language.postfixOps
+import scala.language.postfixOps
 
 name := "customs-dit-licences"
 
@@ -98,9 +96,8 @@ lazy val playPublishingSettings: Seq[sbt.Setting[_]] = sbtrelease.ReleasePlugin.
 lazy val scoverageSettings: Seq[Setting[_]] = Seq(
   coverageExcludedPackages := List(
     "<empty>",
-    "Reverse.*",
     "uk\\.gov\\.hmrc\\.customs\\.dit\\.licence\\.services\\.ConfigService",
-    ".*(BuildInfo|Routes).*").mkString(";"),
+    ".*(Reverse|BuildInfo|Routes).*").mkString(";"),
   coverageMinimum := 98,
   coverageFailOnMinimum := false,
   coverageHighlighting := true,

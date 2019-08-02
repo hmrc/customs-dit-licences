@@ -26,16 +26,18 @@ import uk.gov.hmrc.customs.dit.licence.controllers.CustomHeaderNames.X_CORRELATI
 import uk.gov.hmrc.customs.dit.licence.domain.{ConfigKey, EntryUsage, LateUsage}
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
 import uk.gov.hmrc.customs.dit.licence.model.{PublicNotificationRequest, PublicNotificationRequestHeader, RequestData, ValidatedRequest}
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
-abstract class UsageController @Inject()(validateAndExtractHeadersAction: ValidateAndExtractHeadersAction,
+abstract class UsageController @Inject()(cc: ControllerComponents,
+                                         validateAndExtractHeadersAction: ValidateAndExtractHeadersAction,
                                          connector: PublicNotificationServiceConnector,
                                          serviceConfigProvider: ServiceConfigProvider,
                                          logger: LicencesLogger,
-                                         configKey: ConfigKey)(implicit ec: ExecutionContext) extends BaseController {
+                                         configKey: ConfigKey)
+                                         (implicit ec: ExecutionContext) extends BackendController(cc) {
 
   private lazy val entryUsageUrlAndBasicToken: UrlAndBasicToken = urlAndBasicToken(EntryUsage)
   private lazy val lateEntryUrlAndBasicToken: UrlAndBasicToken = urlAndBasicToken(LateUsage)
@@ -104,11 +106,13 @@ abstract class UsageController @Inject()(validateAndExtractHeadersAction: Valida
 }
 
 @Singleton
-class EntryUsageController @Inject()(validateAndExtractHeadersAction: ValidateAndExtractHeadersAction,
+class EntryUsageController @Inject()(cc: ControllerComponents,
+                                     validateAndExtractHeadersAction: ValidateAndExtractHeadersAction,
                                      connector: PublicNotificationServiceConnector,
                                      serviceConfigProvider: ServiceConfigProvider,
-                                     logger: LicencesLogger)(implicit ec: ExecutionContext)
-  extends UsageController(validateAndExtractHeadersAction, connector, serviceConfigProvider, logger, EntryUsage) {
+                                     logger: LicencesLogger)
+                                     (implicit ec: ExecutionContext)
+  extends UsageController(cc ,validateAndExtractHeadersAction, connector, serviceConfigProvider, logger, EntryUsage) {
 
   def post(): Action[AnyContent] = {
     super.process()
@@ -116,11 +120,13 @@ class EntryUsageController @Inject()(validateAndExtractHeadersAction: ValidateAn
 }
 
 @Singleton
-class LateUsageController @Inject()(validateAndExtractHeadersAction: ValidateAndExtractHeadersAction,
+class LateUsageController @Inject()(cc: ControllerComponents,
+                                    validateAndExtractHeadersAction: ValidateAndExtractHeadersAction,
                                     connector: PublicNotificationServiceConnector,
                                     serviceConfigProvider: ServiceConfigProvider,
-                                    logger: LicencesLogger)(implicit ec: ExecutionContext)
-  extends UsageController(validateAndExtractHeadersAction, connector, serviceConfigProvider, logger, LateUsage) {
+                                    logger: LicencesLogger)
+                                    (implicit ec: ExecutionContext)
+  extends UsageController(cc, validateAndExtractHeadersAction, connector, serviceConfigProvider, logger, LateUsage) {
 
   def post(): Action[AnyContent] = {
     super.process()

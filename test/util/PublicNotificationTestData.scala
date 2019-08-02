@@ -16,8 +16,8 @@
 
 package util
 
-import controllers.Default
 import play.api.http.HeaderNames._
+import play.api.http.Status.OK
 import play.api.test.FakeRequest
 import play.mvc.Http.MimeTypes._
 import uk.gov.hmrc.customs.dit.licence.model._
@@ -31,12 +31,8 @@ object PublicNotificationTestData {
   val ValidXML1: NodeSeq = <some1>xml1</some1>
   val ValidXML2: NodeSeq = <some2>xml2</some2>
 
-  lazy val ValidEntryUsageRequest = FakeRequest()
+  lazy val ValidUsageRequest = FakeRequest()
     .withHeaders(RequestHeaders.ValidHeaders.toSeq: _*)
-    .copyFakeRequest(method = "POST", uri = "/send-entry-usage")
-  lazy val ValidLateUsageRequest = FakeRequest()
-    .withHeaders(RequestHeaders.ValidHeaders.toSeq: _*)
-    .copyFakeRequest(method = "POST", uri = "/send-late-usage")
 
   val RequestHeader1 = PublicNotificationRequestHeader("header1", "value1")
   val RequestHeader2 = PublicNotificationRequestHeader("header2", "value2")
@@ -85,7 +81,7 @@ object PublicNotificationTestData {
     PublicNotificationResponseHeader("response2", "response2Value")
   )
 
-  val publicNotificationResponse = PublicNotificationResponse(Default.OK, responseHeaders, "<response>BAR</response>")
+  val publicNotificationResponse = PublicNotificationResponse(OK, responseHeaders, "<response>BAR</response>")
   val publicNotificationResponseAsJson =
     """{
       |  "status" : 200,

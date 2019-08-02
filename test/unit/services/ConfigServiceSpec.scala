@@ -18,10 +18,11 @@ package unit.services
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.{Configuration, Environment, Mode}
-import uk.gov.hmrc.customs.api.common.config.{ConfigValidatedNelAdaptor, ServicesConfig}
+import play.api.{Configuration, Mode}
+import uk.gov.hmrc.customs.api.common.config.ConfigValidatedNelAdaptor
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.dit.licence.services.LicenceConfigService
+import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
 import uk.gov.hmrc.play.test.UnitSpec
 
 class ConfigServiceSpec extends UnitSpec with MockitoSugar {
@@ -71,8 +72,5 @@ class ConfigServiceSpec extends UnitSpec with MockitoSugar {
     }
   }
 
-  private def testServicesConfig(configuration: Configuration) = new ServicesConfig(configuration, mock[Environment]) {
-    override val mode: Mode.Value = play.api.Mode.Test
-  }
-
+  private def testServicesConfig(configuration: Configuration) = new ServicesConfig(configuration, new RunMode(configuration, Mode.Test))
 }

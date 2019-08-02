@@ -20,44 +20,40 @@ import org.mockito.Mockito._
 import org.scalatest.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.Result
-import play.api.mvc.Results.Ok
-import play.api.test.FakeRequest
+import play.api.mvc.Results._
+import play.api.test.Helpers
 import uk.gov.hmrc.customs.dit.licence.controllers.{HeaderValidator, ValidateAndExtractHeadersAction}
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
 import uk.gov.hmrc.customs.dit.licence.model.ValidatedRequest
 import uk.gov.hmrc.play.test.UnitSpec
-import util.RequestHeaders._
 import util.TestData._
 
 import scala.concurrent.Future
-
 
 class ValidateAndExtractHeadersActionSpec extends UnitSpec with Matchers with MockitoSugar {
 
   val blockReturningOk = (_: ValidatedRequest[_]) => Future.successful(Ok)
 
+  private val cc = Helpers.stubControllerComponents()
   private val mockHeaderValidator = mock[HeaderValidator]
   private val mockLogger = mock[LicencesLogger]
-  private val actionRefiner = new ValidateAndExtractHeadersAction(mockHeaderValidator, mockLogger)
+  private val actionRefiner = new ValidateAndExtractHeadersAction(cc, mockHeaderValidator, mockLogger)
 
   "ValidateAndExtractHeadersAction" should {
     "when valid headers are submitted then return a ValidatedRequest" in {
-      val request = FakeRequest().withXmlBody(ValidXML).withHeaders(ValidHeaders.toSeq:_*)
+      val request = ValidRequest
       when(mockHeaderValidator.validateHeaders(request)).thenReturn(Right(TestRequestData))
 
       val result: Result = await(actionRefiner.invokeBlock(request, blockReturningOk))
-
       result shouldBe Ok
     }
 
     "when invalid headers are submitted then return an ErrorResponse" in {
-      val request = FakeRequest().withXmlBody(ValidXML).withHeaders(InvalidHeaders.toSeq:_*)
+      val request = InvalidRequestWithoutXCorrelationId
       when(mockHeaderValidator.validateHeaders(InvalidRequestWithoutXCorrelationId)).thenReturn(Left(ErrorXCorrelationIdMissingOrInvalid))
 
       val result: Result = await(actionRefiner.invokeBlock(request, blockReturningOk))
-
       result shouldBe ErrorXCorrelationIdMissingOrInvalid.XmlResult
     }
-
   }
 }

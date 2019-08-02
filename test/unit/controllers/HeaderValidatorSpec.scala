@@ -17,16 +17,16 @@
 package unit.controllers
 
 import org.mockito.Mockito.when
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.prop.TableDrivenPropertyChecks
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.http.HeaderNames
 import play.api.http.HeaderNames._
 import play.api.mvc.{AnyContent, Headers, Request}
 import play.api.test.Helpers.CONTENT_TYPE
-import uk.gov.hmrc.customs.api.common.config.ServicesConfig
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{ErrorAcceptHeaderInvalid, ErrorContentTypeHeaderInvalid}
 import uk.gov.hmrc.customs.dit.licence.controllers.HeaderValidator
 import uk.gov.hmrc.customs.dit.licence.services.LicenceConfigService
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.test.UnitSpec
 import util.RequestHeaders._
 import util.StubCdsLogger
