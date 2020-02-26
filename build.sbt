@@ -10,7 +10,7 @@ import uk.gov.hmrc.gitstamp.GitStampPlugin._
 import scala.language.postfixOps
 
 name := "customs-dit-licences"
-
+scalaVersion := "2.12.10"
 targetJvm := "jvm-1.8"
 
 lazy val allResolvers = resolvers ++= Seq(
