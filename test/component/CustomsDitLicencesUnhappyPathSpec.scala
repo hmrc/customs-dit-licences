@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package acceptance
+package component
 
 import play.api.libs.json.{JsObject, JsString}
 import play.api.mvc.request.RequestTarget
