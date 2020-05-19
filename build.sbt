@@ -90,7 +90,7 @@ scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 
 val compileDependencies = Seq(customsApiCommon)
 
-val testDependencies = Seq(hmrcTest, scalaTestPlusPlay, wireMock, mockito, customsApiCommonTests)
+val testDependencies = Seq(scalaTestPlusPlay, wireMock, mockito, customsApiCommonTests)
 
 libraryDependencies ++= compileDependencies ++ testDependencies
 

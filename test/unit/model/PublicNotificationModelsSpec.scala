@@ -19,7 +19,7 @@ package unit.model
 import play.api.libs.json.Json
 import uk.gov.hmrc.customs.dit.licence.model.PublicNotificationResponse._
 import uk.gov.hmrc.customs.dit.licence.model.{PublicNotificationRequest, PublicNotificationResponse}
-import uk.gov.hmrc.play.test.UnitSpec
+import util.UnitSpec
 import util.PublicNotificationTestData._
 
 class PublicNotificationModelsSpec extends UnitSpec {
