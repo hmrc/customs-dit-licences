@@ -21,7 +21,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.customs.dit.licence.logging.LoggingHelper
 import uk.gov.hmrc.customs.dit.licence.model.{RequestData, ValidatedRequest}
-import uk.gov.hmrc.play.test.UnitSpec
+import util.UnitSpec
 import util.TestData._
 
 class LoggingHelperSpec extends UnitSpec with MockitoSugar {
