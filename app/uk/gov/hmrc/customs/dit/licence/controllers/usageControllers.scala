@@ -26,7 +26,7 @@ import uk.gov.hmrc.customs.dit.licence.controllers.CustomHeaderNames.X_CORRELATI
 import uk.gov.hmrc.customs.dit.licence.domain.{ConfigKey, EntryUsage, LateUsage}
 import uk.gov.hmrc.customs.dit.licence.logging.LicencesLogger
 import uk.gov.hmrc.customs.dit.licence.model.{PublicNotificationRequest, PublicNotificationRequestHeader, RequestData, ValidatedRequest}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
