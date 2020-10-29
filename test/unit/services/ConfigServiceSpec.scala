@@ -18,11 +18,11 @@ package unit.services
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.{Configuration, Mode}
+import play.api.Configuration
 import uk.gov.hmrc.customs.api.common.config.ConfigValidatedNelAdaptor
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.dit.licence.services.LicenceConfigService
-import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import util.UnitSpec
 
 class ConfigServiceSpec extends UnitSpec with MockitoSugar {
@@ -64,7 +64,7 @@ class ConfigServiceSpec extends UnitSpec with MockitoSugar {
       val expectedErrorMessage =
         """
           |Could not find config key 'auth.token.internal'
-          |Could not find config public-notification.host
+          |Could not find config key 'public-notification.host'
           |Service configuration not found for key: public-notification.context""".stripMargin
 
       val caught = intercept[IllegalStateException](customsConfigService(emptyServicesConfiguration))
@@ -72,5 +72,5 @@ class ConfigServiceSpec extends UnitSpec with MockitoSugar {
     }
   }
 
-  private def testServicesConfig(configuration: Configuration) = new ServicesConfig(configuration, new RunMode(configuration, Mode.Test))
+  private def testServicesConfig(configuration: Configuration) = new ServicesConfig(configuration)
 }
