@@ -13,11 +13,6 @@ name := "customs-dit-licences"
 scalaVersion := "2.12.11"
 targetJvm := "jvm-1.8"
 
-lazy val allResolvers = resolvers ++= Seq(
-  Resolver.bintrayRepo("hmrc", "releases"),
-  Resolver.jcenterRepo
-)
-
 lazy val CdsIntegrationComponentTest = config("it") extend Test
 
 val testConfig = Seq(CdsIntegrationComponentTest, Test)
@@ -44,8 +39,7 @@ lazy val microservice = (project in file("."))
     integrationComponentTestSettings,
     playPublishingSettings,
     allTest,
-    scoverageSettings,
-    allResolvers
+    scoverageSettings
   )
   .settings(majorVersion := 0)
 
